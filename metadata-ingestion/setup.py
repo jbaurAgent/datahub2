@@ -71,6 +71,7 @@ plugins: Dict[str, Set[str]] = {
     "athena": sql_common | {"PyAthena[SQLAlchemy]"},
     "bigquery": sql_common | {"pybigquery >= 0.6.0"},
     "druid": sql_common | {"pydruid>=0.6.2"},
+    "elastic": {"elasticsearch"},
     "feast": {"docker"},
     "glue": {"boto3"},
     "hive": sql_common
@@ -145,6 +146,7 @@ base_dev_requirements = {
             "looker",
             "glue",
             "hive",
+            "elastic",
             "kudu",
             "oracle",
             "datahub-kafka",
@@ -182,6 +184,7 @@ entry_points = {
         "bigquery = datahub.ingestion.source.bigquery:BigQuerySource",
         "dbt = datahub.ingestion.source.dbt:DBTSource",
         "druid = datahub.ingestion.source.druid:DruidSource",
+        "elastic = datahub.ingestion.source.elastic:ElasticSource",
         "feast = datahub.ingestion.source.feast:FeastSource",
         "glue = datahub.ingestion.source.glue:GlueSource",
         "hive = datahub.ingestion.source.hive:HiveSource",

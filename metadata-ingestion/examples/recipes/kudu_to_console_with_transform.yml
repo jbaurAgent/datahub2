@@ -3,12 +3,11 @@ source:
   type: kudu  #only kudu tables are processed in this recipe
   config:
     host: localhost:21050
-    ca_cert: /specify/root/cert/for/cluster  #ask admin for cert
-    database: default
-    use_ssl: True 
-#   schema_pattern:   #allowed schema will be processed. if not stated, will be dropped.
-#      allow:
-#       - "default"        
+#    use_ssl: False  #use true in kerberos 
+#    ca_cert: /specify/root/cert/for/cluster  #ask admin for cert    
+  schema_pattern:   #allowed schema will be processed. if schema pattern is enabled and the schema is not inside, it will be dropped.
+    allow:
+      - "default"        
 #   table_pattern:
 #        allow:
 #            - "schema1.table1"
@@ -16,10 +15,7 @@ source:
 #        deny:
 #            - "^.*\.sys_.*" # for any schema scanned, deny all tables that start with sys_    
 #            - "^schema1.sys_" # ignore any table in schema1 starting with sys_
-#    options: 
-#      connect_args:      
-#        auth: GSSAPI    
-#        kerberos_service_name: impala
+
 transformers:
   - type: "remove_prod_prefix"
     config:

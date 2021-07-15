@@ -134,14 +134,27 @@ def get_schema_metadata(
 
 
 class KuduConfig(ConfigModel):
-    # defaults
+    """
+    when using it to scrape unsecured cluster, only the following param is needed:
+    1. host: ie localhost:21050
+    2. schema_pattern (optional): specifies which schema to be scraped.
+    3. table_pattern (optional): which tables in allowed schema to be scraped.
+
+    for kerberoised cluster:
+    1. host
+    2. ca_cert
+    3. use_ssl=True
+    4. keytab_location
+    5. service_principal
+    """
+
     scheme: str = "impala"
     database: str = "default"
     ca_cert: str = "/cert/path/is/missing.crt"
     host: str = "localhost:21050"
-    use_ssl: bool = True
+    use_ssl: bool = False
     authMechanism: Optional[str] = "GSSAPI"
-    service_principal: str = "some service principal"
+    service_principal: str = "some service principal"  # ie, user@yahoo.com
     keytab_location: str = ""
     options: dict = {}
     env: str = DEFAULT_ENV
@@ -179,7 +192,7 @@ class KuduSource(Source):
 
         url = sql_config.get_sql_alchemy_url()
 
-        if sql_config.keytab_location is None:
+        if sql_config.keytab_location == "":
             engine = create_engine(url)
             inspector = inspect(engine)
             for schema in inspector.get_schema_names():

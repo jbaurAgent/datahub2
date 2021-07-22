@@ -7,9 +7,14 @@
 *.iml
 *.iws
 *.ipr
-
+**/cypress.zip
 *gma-create-all.sql
 *gma-drop-all.sql
+
+#office specific files:
+**/Dockerfile_office
+**/office_compose.*
+**/*_office.env
 
 # Pegasus & Avro
 **/src/mainGenerated*

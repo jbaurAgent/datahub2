@@ -1,0 +1,4 @@
+FROM adoptopenjdk/openjdk8:alpine-slim as prod-build
+RUN apk --no-cache add perl
+
+#dockdevx/frontend_slim:1.0

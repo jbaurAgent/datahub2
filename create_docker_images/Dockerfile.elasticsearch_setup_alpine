@@ -1,0 +1,6 @@
+FROM alpine:3 as base
+ENV DOCKERIZE_VERSION v0.6.1
+RUN apk add --no-cache curl jq tar \
+    && curl -L https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz | tar -C /usr/local/bin -xzv
+
+#dockdevx/elasticsearch_setup_alpine:1.0

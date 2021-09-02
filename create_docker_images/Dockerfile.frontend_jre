@@ -1,0 +1,5 @@
+FROM adoptopenjdk/openjdk8:alpine-jre as base
+RUN addgroup -S datahub && adduser -S datahub -G datahub
+RUN apk --no-cache add curl
+
+#dockdevx/frontend_jre:1.0

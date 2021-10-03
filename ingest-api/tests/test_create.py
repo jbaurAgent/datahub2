@@ -4,7 +4,7 @@ import sys
 
 from datahub.metadata.schema_classes import DatasetLineageTypeClass
 
-from ingest_api.helper.mce_convenience import (generate_json_output,
+from ingest_api.helper.mce_convenience import (generate_mce_json_output,
                                                make_browsepath_mce,
                                                make_dataset_description_mce,
                                                make_dataset_urn,
@@ -13,8 +13,11 @@ from ingest_api.helper.mce_convenience import (generate_json_output,
                                                make_lineage_mce,
                                                make_ownership_mce,
                                                make_platform, make_recover_mce,
-                                               make_schema_mce, make_user_urn)
+                                               make_schema_mce, make_user_urn,
+                                               make_dataprofile)
 from ingest_api.helper.models import determine_type
+from datahub.metadata.com.linkedin.pegasus2avro.metadata.snapshot import DatasetSnapshot
+from datahub.metadata.com.linkedin.pegasus2avro.mxe import MetadataChangeEvent
 
 
 def test_make_csv_dataset(
@@ -37,6 +40,10 @@ def test_make_csv_dataset(
         ],
         "dataset_origin": "origin of dataset",
         "dataset_location": "location of dataset",
+        "dataset_rowcount":100,
+        "dataset_samples":{"field1": ["sample_val1","sample_value2"],
+                        "field2": ["123","345"]
+                        }
     },
     specified_time=1625108310242,
 ):
@@ -86,14 +93,24 @@ def test_make_csv_dataset(
     path_mce = make_browsepath_mce(
         dataset_urn=dataset_urn, path=["/csv/my_test_dataset"]
     )
+    data_sample = make_dataprofile(samples = inputs["dataset_samples"], 
+                                    data_rowcount = inputs["dataset_rowcount"],
+                                    fields = inputs["fields"],
+                                    dataset_name = dataset_urn,
+                                    specified_time=specified_time)
     output_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "test_create_output.json"
     )
     golden_file_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "golden_schema_mce.json"
     )
-
-    generate_json_output([output_mce, description_mce, path_mce], file_loc=output_path)
+    dataset_snapshot = DatasetSnapshot(
+            urn=dataset_urn,
+            aspects=[output_mce, description_mce, path_mce],
+        )
+    metadata_record = MetadataChangeEvent(proposedSnapshot=dataset_snapshot)
+    print(data_sample)
+    generate_mce_json_output(metadata_record,data_sample, file_loc=output_path)
     with open(output_path, "r") as f:
         generated_dict = json.dumps(json.load(f), sort_keys=True)
     with open(golden_file_path, "r") as f:
@@ -115,7 +132,7 @@ def test_delete_undo(
     golden_file_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "golden_delete_undo_mce.json"
     )
-    generate_json_output([delete_mce, undo_delete_mce], file_loc=output_path)
+    generate_mce_json_output([delete_mce, undo_delete_mce], file_loc=output_path)
     with open(output_path, "r") as f:
         generated_dict = json.dumps(json.load(f), sort_keys=True)
     with open(golden_file_path, "r") as f:

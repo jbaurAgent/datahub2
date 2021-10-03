@@ -5,11 +5,12 @@ from logging.handlers import TimedRotatingFileHandler
 
 import uvicorn
 from datahub.emitter.rest_emitter import DatahubRestEmitter
-from fastapi import FastAPI, Response
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from datahub.metadata.com.linkedin.pegasus2avro.metadata.snapshot import DatasetSnapshot
 from datahub.metadata.com.linkedin.pegasus2avro.mxe import MetadataChangeEvent
-from ingest_api.helper.mce_convenience import (generate_json_output,
+from ingest_api.helper.mce_convenience import (generate_mce_json_output,
                                                get_sys_time,
                                                make_browsepath_mce,
                                                make_dataset_description_mce,
@@ -17,8 +18,9 @@ from ingest_api.helper.mce_convenience import (generate_json_output,
                                                make_delete_mce,
                                                make_ownership_mce,
                                                make_platform, make_recover_mce,
-                                               make_schema_mce, make_user_urn)
-from ingest_api.helper.models import (FieldParam, create_dataset_params,
+                                               make_schema_mce, make_user_urn,
+                                               make_dataprofile)
+from ingest_api.helper.models import (create_dataset_params,
                                       dataset_status_params, determine_type)
 
 # when DEBUG = true, im not running ingest_api from container, but from localhost python interpreter, hence need to change the endpoint used.
@@ -56,7 +58,7 @@ rootLogger.info("started!")
 app = FastAPI(
     title="Datahub secret API",
     description="For generating datasets",
-    version="0.0.2",
+    version="0.0.3",
 )
 origins = ["http://localhost:9002", "http://172.19.0.1:9002"]
 if environ.get("ACCEPT_ORIGINS") is not None:
@@ -142,27 +144,45 @@ async def create_item(item: create_dataset_params) -> None:
             fields=field_params,
         )
     )
+    data_sample = None if not item.dataset_samples \
+                        else make_dataprofile(item.dataset_samples, 
+                                            item.dataset_rowcount,
+                                            item.fields,
+                                            datasetName)
+    rootLogger.error(f"data_sample is {data_sample}")
     metadata_record = MetadataChangeEvent(proposedSnapshot=dataset_snapshot)
     for mce in metadata_record.proposedSnapshot.aspects:
         if not mce.validate():
             rootLogger.error(
                 f"{mce.__class__} is not defined properly"
             )
-            return Response(
+            return JSONResponse(
                 f"Dataset was not created because dataset definition has encountered an error for {mce.proposedSnapshot.aspects[0].__class__}",
                 status_code=400,
             )
+    if data_sample:
+        if not data_sample.validate():
+            rootLogger.error(
+                f"{data_sample.__class__} is not defined properly"
+            )
+            return JSONResponse(
+                f"Dataset was not created because sample definition has encountered an error",
+                status_code=400,
+            )
     if not DEBUG:
-        generate_json_output(metadata_record, "/var/log/ingest/json")
-    try:
-        rootLogger.error(metadata_record)
+        generate_mce_json_output(metadata_record, data_sample, "/var/log/ingest/json")
+        rootLogger.info("saved to file")
+    try:        
         emitter = DatahubRestEmitter(rest_endpoint)
         emitter.emit_mce(metadata_record)
+        if data_sample:
+            rootLogger.error("emitting sample")
+            emitter.emit(data_sample)
         emitter._session.close()
     except Exception as e:
         rootLogger.debug(e)
-        return Response(
-            "Dataset was not created because upstream has encountered an error {}".format(e),
+        return JSONResponse(
+            "Dataset was not created because GMS has encountered an error {}".format(e),
             status_code=500,
         )
     rootLogger.info(
@@ -170,11 +190,12 @@ async def create_item(item: create_dataset_params) -> None:
             item.dataset_name, item.dataset_owner
         )
     )
-    return Response(
+    return JSONResponse(
         "dataset can be found at /dataset/{}".format(
             make_dataset_urn(item.dataset_type, item.dataset_name)
         ),
         status_code=201,
+
     )
 
 
@@ -193,7 +214,7 @@ async def delete_item(item: dataset_status_params) -> None:
         emitter._session.close()
     except Exception as e:
         rootLogger.debug(e)
-        return Response(
+        return JSONResponse(
             "Request was not fulfilled because upstream has encountered an error {}".format(e),
             status_code=502,
         )
@@ -202,7 +223,7 @@ async def delete_item(item: dataset_status_params) -> None:
             item.dataset_name, item.requestor
         )
     )
-    return Response(
+    return JSONResponse(
         "dataset has been removed from search and UI. please refresh the webpage.",
         status_code=201,
     )
@@ -222,7 +243,7 @@ async def recover_item(item: dataset_status_params) -> None:
         emitter._session.close()
     except Exception as e:
         rootLogger.debug(e)
-        return Response(
+        return JSONResponse(
             "Request was not fulfilled because upstream has encountered an error {}".format(e),
             status_code=502,
         )
@@ -231,7 +252,7 @@ async def recover_item(item: dataset_status_params) -> None:
             item.dataset_name, item.requestor
         )
     )
-    return Response("dataset has been restored", status_code=201)
+    return JSONResponse("dataset has been restored", status_code=201)
 
 
 if __name__ == "__main__":

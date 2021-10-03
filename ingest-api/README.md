@@ -26,7 +26,7 @@
 `curl -X GET http://localhost:8001/hello` hello world should return something  
 
 make a sample dataset:  
-`curl -d '{"dataset_name":"dataset_name", "dataset_type":"text/csv", "dataset_owner": "34552", "dataset_description": "hello this is desc", "fields": [{"field_name":"field1","field_type":"string", "field_description":"col1"}], "dataset_origin":"origin", "dataset_location":"location"}' -H "Content-Type: application/json" -X POST http://localhost:8001/make_dataset`  
+`curl -d '{"dataset_name":"dataset_name", "dataset_type":"text/csv", "dataset_owner": "34552", "dataset_description": "hello this is desc", "fields": [{"field_name":"field1","field_type":"string", "field_description":"col1"}], "dataset_origin":"origin", "dataset_location":"location", "dataset_rowcount":100,"dataset_samples":{"field1":["sample_val1","sample_value2"]}}' -H "Content-Type: application/json" -X POST http://localhost:8001/make_dataset`  
 
 the api will return a string containing the url if successful.
 

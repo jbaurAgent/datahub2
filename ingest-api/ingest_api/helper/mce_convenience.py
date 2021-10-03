@@ -9,6 +9,7 @@ from typing import Dict, List, Optional, Type, TypeVar, Union
 from datahub.ingestion.api import RecordEnvelope
 from datahub.ingestion.api.workunit import MetadataWorkUnit
 from datahub.metadata.schema_classes import *
+from datahub.emitter.mcp import MetadataChangeProposalWrapper
 
 log = logging.getLogger(__name__)
 
@@ -211,17 +212,44 @@ def make_ownership_mce(actor: str, dataset_urn: str) -> OwnershipClass:
                     actor=make_user_urn(actor),
                 ),
             )
+
+def make_dataprofile(samples: Dict[str, List[str]], 
+                    data_rowcount: int, 
+                    fields:List[Dict[str, str]],
+                    dataset_name: str,
+                    specified_time:int) -> MetadataChangeProposalWrapper:
+    
+    dataset_profile = DatasetProfileClass(
+        timestampMillis=int(time.time() * 1000) if not specified_time else specified_time,
+        rowCount=data_rowcount if data_rowcount > 0 else None,
+        columnCount= len(fields) if len(fields) >0 else None,
+        fieldProfiles= [DatasetFieldProfileClass(fieldPath=key, 
+                    sampleValues=[str(item) for item in samples[key]]) for key in samples.keys()]
+        )
+    metadata_proposal = MetadataChangeProposalWrapper(
+                        entityType="dataset",
+                        aspectName="datasetProfile",
+                        changeType=ChangeTypeClass.UPSERT,
+                        entityUrn=dataset_name,
+                        aspect=dataset_profile,
+                        )
+    return metadata_proposal
             
-def generate_json_output(mce: MetadataChangeEventClass, file_loc: str) -> None:
+def generate_mce_json_output(mce: MetadataChangeEventClass, 
+                            data_sample: Union[MetadataChangeProposalWrapper,None],
+                            file_loc: str) -> None:
     """
     Generates the json MCE files that can be ingested via CLI. For debugging
     """    
-    mce_obj = mce.to_obj()
+    if data_sample:
+        dataset_obj = [mce.to_obj(), data_sample.to_obj()]
+    else:
+        dataset_obj = [mce.to_obj()]
     file_name = mce.proposedSnapshot.urn.replace("urn:li:dataset:(urn:li:dataPlatform:", "").split(",")[1]
     path = os.path.join(file_loc, f"{file_name}.json")
 
     with open(path, "w") as f:
-        json.dump(mce_obj, f, indent=4)
+        json.dump(dataset_obj, f, indent=4)
 
 
 def make_delete_mce(

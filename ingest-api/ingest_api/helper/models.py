@@ -20,6 +20,8 @@ class create_dataset_params(BaseModel):
     dataset_origin: str = ""
     hasHeader: str = "n/a"
     headerLine: int = 1
+    dataset_rowcount=-1
+    dataset_samples: Union[None, Dict[str, List[str]]] = None
 
     class Config:
         schema_extra = {
@@ -32,6 +34,7 @@ class create_dataset_params(BaseModel):
                 "dataset_origin": "this dataset found came from... ie internet",
                 "hasHeader": "no",
                 "headerLine": 1,
+                "dataset_rowcount":10,                
                 "dataset_fields": [
                     {
                         "field_name": "columnA",
@@ -44,6 +47,11 @@ class create_dataset_params(BaseModel):
                         "field_description": "what is column B about",
                     },
                 ],
+                "dataset_samples": {
+                    "columnA": ["colA_sample1_in_string", "colA_sample2_in_string"],
+                    "columnB": ["colB_sample1_in_string", "colB_sample2_in_string"],
+                },
+                    
             }
         }
 
@@ -69,9 +77,9 @@ def determine_type(type_input: Union[str, Dict[str, str]]) -> str:
     """
     if isinstance(type_input, Dict):
         type_input = type_input.get("dataset_type", "")
-    if (type_input.lower() == "text/csv") or (
-        type_input.lower() == "application/octet-stream"
-    ):
+    if (type_input.lower() in ["text/csv", 
+                                "application/octet-stream",
+                                "application/vnd.ms-excel"]): 
         return "csv"
     if type_input.lower() == "json":
         return "json"

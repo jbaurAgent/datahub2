@@ -1,23 +1,26 @@
 import json
 import os
-import sys
 
-from datahub.metadata.schema_classes import DatasetLineageTypeClass
-
-from ingest_api.helper.mce_convenience import (generate_mce_json_output,
-                                               make_browsepath_mce,
-                                               make_dataset_description_mce,
-                                               make_dataset_urn,
-                                               make_delete_mce,
-                                               make_institutionalmemory_mce,
-                                               make_lineage_mce,
-                                               make_ownership_mce,
-                                               make_platform, make_recover_mce,
-                                               make_schema_mce, make_user_urn,
-                                               make_dataprofile)
-from ingest_api.helper.models import determine_type
 from datahub.metadata.com.linkedin.pegasus2avro.metadata.snapshot import DatasetSnapshot
 from datahub.metadata.com.linkedin.pegasus2avro.mxe import MetadataChangeEvent
+from datahub.metadata.schema_classes import DatasetLineageTypeClass
+
+from ingest_api.helper.mce_convenience import (
+    generate_mce_json_output,
+    make_browsepath_mce,
+    make_dataprofile,
+    make_dataset_description_mce,
+    make_dataset_urn,
+    make_delete_mce,
+    make_institutionalmemory_mce,
+    make_lineage_mce,
+    make_ownership_mce,
+    make_platform,
+    make_recover_mce,
+    make_schema_mce,
+    make_user_urn,
+)
+from ingest_api.helper.models import determine_type
 
 
 def test_make_csv_dataset(
@@ -40,10 +43,11 @@ def test_make_csv_dataset(
         ],
         "dataset_origin": "origin of dataset",
         "dataset_location": "location of dataset",
-        "dataset_rowcount":100,
-        "dataset_samples":{"field1": ["sample_val1","sample_value2"],
-                        "field2": ["123","345"]
-                        }
+        "dataset_rowcount": 100,
+        "dataset_samples": {
+            "field1": ["sample_val1", "sample_value2"],
+            "field2": ["123", "345"],
+        },
     },
     specified_time=1625108310242,
 ):
@@ -93,11 +97,13 @@ def test_make_csv_dataset(
     path_mce = make_browsepath_mce(
         dataset_urn=dataset_urn, path=["/csv/my_test_dataset"]
     )
-    data_sample = make_dataprofile(samples = inputs["dataset_samples"], 
-                                    data_rowcount = inputs["dataset_rowcount"],
-                                    fields = inputs["fields"],
-                                    dataset_name = dataset_urn,
-                                    specified_time=specified_time)
+    data_sample = make_dataprofile(
+        samples=inputs["dataset_samples"],
+        data_rowcount=inputs["dataset_rowcount"],
+        fields=inputs["fields"],
+        dataset_name=dataset_urn,
+        specified_time=specified_time,
+    )
     output_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "test_create_output.json"
     )
@@ -105,12 +111,17 @@ def test_make_csv_dataset(
         os.path.dirname(os.path.realpath(__file__)), "golden_schema_mce.json"
     )
     dataset_snapshot = DatasetSnapshot(
-            urn=dataset_urn,
-            aspects=[output_mce, description_mce, path_mce],
-        )
+        urn=dataset_urn,
+        aspects=[output_mce, description_mce, path_mce],
+    )
     metadata_record = MetadataChangeEvent(proposedSnapshot=dataset_snapshot)
     print(data_sample)
-    generate_mce_json_output(metadata_record,data_sample, file_loc=output_path)
+    generate_mce_json_output(
+        metadata_record,
+        data_sample,
+        file_loc=os.path.dirname(os.path.realpath(__file__)),
+        filename="test_create_output",
+    )
     with open(output_path, "r") as f:
         generated_dict = json.dumps(json.load(f), sort_keys=True)
     with open(golden_file_path, "r") as f:
@@ -126,18 +137,40 @@ def test_delete_undo(
     )
     delete_mce = make_delete_mce(dataset_urn)
     undo_delete_mce = make_recover_mce(dataset_urn)
-    output_path = os.path.join(
+    output_delete_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "test_delete_mce_output.json"
     )
-    golden_file_path = os.path.join(
+    output_undelete_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), "test_undo_delete_mce_output.json"
+    )
+    golden_delete_file_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), "golden_delete_mce.json"
+    )
+    golden_undo_file_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "golden_delete_undo_mce.json"
     )
-    generate_mce_json_output([delete_mce, undo_delete_mce], file_loc=output_path)
-    with open(output_path, "r") as f:
-        generated_dict = json.dumps(json.load(f), sort_keys=True)
-    with open(golden_file_path, "r") as f:
-        golden_mce = json.dumps(json.load(f), sort_keys=True)
-    assert generated_dict == golden_mce
+    generate_mce_json_output(
+        delete_mce,
+        data_sample=None,
+        file_loc=os.path.dirname(os.path.realpath(__file__)),
+        filename="test_delete_mce_output",
+    )
+    generate_mce_json_output(
+        undo_delete_mce,
+        data_sample=None,
+        file_loc=os.path.dirname(os.path.realpath(__file__)),
+        filename="test_undo_delete_mce_output",
+    )
+    with open(output_delete_path, "r") as f:
+        delete_mce = json.dumps(json.load(f), sort_keys=True)
+    with open(output_undelete_path, "r") as f:
+        undelete_mce = json.dumps(json.load(f), sort_keys=True)
+    with open(golden_delete_file_path, "r") as f:
+        golden_delete_mce = json.dumps(json.load(f), sort_keys=True)
+    with open(golden_undo_file_path, "r") as f:
+        golden_undelete_mce = json.dumps(json.load(f), sort_keys=True)
+    assert delete_mce == golden_delete_mce
+    assert undelete_mce == golden_undelete_mce
 
 
 def test_type_string():

@@ -4,12 +4,45 @@ import json
 import logging
 import os
 import time
-from typing import Dict, List, Optional, Type, TypeVar, Union
+from typing import Dict, List, Optional, TypeVar, Union
 
-from datahub.ingestion.api import RecordEnvelope
-from datahub.ingestion.api.workunit import MetadataWorkUnit
-from datahub.metadata.schema_classes import *
 from datahub.emitter.mcp import MetadataChangeProposalWrapper
+from datahub.metadata.schema_classes import (
+    ArrayTypeClass,
+    AuditStampClass,
+    BooleanTypeClass,
+    BrowsePathsClass,
+    BytesTypeClass,
+    ChangeTypeClass,
+    DatasetFieldProfileClass,
+    DatasetLineageTypeClass,
+    DatasetProfileClass,
+    DatasetPropertiesClass,
+    DatasetSnapshotClass,
+    DateTypeClass,
+    EnumTypeClass,
+    FixedTypeClass,
+    InstitutionalMemoryClass,
+    InstitutionalMemoryMetadataClass,
+    MapTypeClass,
+    MetadataChangeEventClass,
+    NullTypeClass,
+    NumberTypeClass,
+    OtherSchemaClass,
+    OwnerClass,
+    OwnershipClass,
+    OwnershipTypeClass,
+    RecordTypeClass,
+    SchemaFieldClass,
+    SchemaFieldDataTypeClass,
+    SchemaMetadataClass,
+    StatusClass,
+    StringTypeClass,
+    TimeTypeClass,
+    UnionTypeClass,
+    UpstreamClass,
+    UpstreamLineageClass,
+)
 
 log = logging.getLogger(__name__)
 
@@ -42,6 +75,7 @@ def make_user_urn(username: str) -> str:
 def make_tag_urn(tag: str) -> str:
     return f"urn:li:tag:{tag}"
 
+
 def make_institutionalmemory_mce(
     dataset_urn: str, input_url: List[str], input_description: List[str], actor: str
 ) -> InstitutionalMemoryClass:
@@ -51,29 +85,31 @@ def make_institutionalmemory_mce(
     sys_time = get_sys_time()
     actor = make_user_urn(actor)
     mce = InstitutionalMemoryClass(
-            elements=[
-                InstitutionalMemoryMetadataClass(
-                    url=url,
-                    description=description,
-                    createStamp=AuditStampClass(
-                        time=sys_time,
-                        actor=actor,
-                    ),
-                )
-                for url, description in zip(input_url, input_description)
-            ]
-        )
+        elements=[
+            InstitutionalMemoryMetadataClass(
+                url=url,
+                description=description,
+                createStamp=AuditStampClass(
+                    time=sys_time,
+                    actor=actor,
+                ),
+            )
+            for url, description in zip(input_url, input_description)
+        ]
+    )
 
     return mce
+
 
 def make_browsepath_mce(
     dataset_urn: str,
     path: List[str],
 ) -> BrowsePathsClass:
     """
-    Creates browsepath for dataset. By default, if not specified, Datahub assigns it to /prod/platform/datasetname
+    Creates browsepath for dataset. By default,
+    if not specified, Datahub assigns it to
+    /prod/platform/datasetname
     """
-    sys_time = get_sys_time()
     mce = BrowsePathsClass(paths=path)
     return mce
 
@@ -89,7 +125,8 @@ def make_lineage_mce(
     ],
 ) -> MetadataChangeEventClass:
     """
-    Specifies Upstream Datasets relative to this dataset. Downstream is always referring to current dataset
+    Specifies Upstream Datasets relative to this dataset.
+    Downstream is always referring to current dataset
     urns should be created using make_dataset_urn
     lineage have to be one of the 3
     """
@@ -129,11 +166,12 @@ def make_dataset_description_mce(
     Tags and externalUrl doesnt seem to have any impact on UI.
     """
     return DatasetPropertiesClass(
-                    description=description,
-                    externalUrl=externalUrl,
-                    customProperties=customProperties
-                )
-            
+        description=description,
+        externalUrl=externalUrl,
+        customProperties=customProperties,
+    )
+
+
 def make_schema_mce(
     dataset_urn: str,
     platformName: str,
@@ -147,7 +185,7 @@ def make_schema_mce(
         try:
             datetime.datetime.fromtimestamp(system_time / 1000)
             sys_time = system_time
-        except ValueError as e:
+        except:
             log.error("specified_time is out of range")
             sys_time = get_sys_time()
     else:
@@ -172,8 +210,8 @@ def make_schema_mce(
             "union": UnionTypeClass(),
             "map": MapTypeClass(),
             "fixed": FixedTypeClass(),
-            "double":NumberTypeClass(),
-            "date-time":TimeTypeClass(),
+            "double": NumberTypeClass(),
+            "date-time": TimeTypeClass(),
         }.get(item["field_type"])
 
     mce = SchemaMetadataClass(
@@ -199,53 +237,68 @@ def make_schema_mce(
     )
     return mce
 
+
 def make_ownership_mce(actor: str, dataset_urn: str) -> OwnershipClass:
     return OwnershipClass(
-                owners=[
-                    OwnerClass(
-                        owner=actor,
-                        type=OwnershipTypeClass.DATAOWNER,
-                    )
-                ],
-                lastModified=AuditStampClass(
-                    time=int(time.time() * 1000),
-                    actor=make_user_urn(actor),
-                ),
+        owners=[
+            OwnerClass(
+                owner=actor,
+                type=OwnershipTypeClass.DATAOWNER,
             )
+        ],
+        lastModified=AuditStampClass(
+            time=int(time.time() * 1000),
+            actor=make_user_urn(actor),
+        ),
+    )
 
-def make_dataprofile(samples: Dict[str, List[str]], 
-                    data_rowcount: int, 
-                    fields:List[Dict[str, str]],
-                    dataset_name: str,
-                    specified_time:int) -> MetadataChangeProposalWrapper:
-    
+
+def make_dataprofile(
+    samples: Dict[str, List[str]],
+    data_rowcount: int,
+    fields: List[Dict[str, str]],
+    dataset_name: str,
+    specified_time: int,
+) -> MetadataChangeProposalWrapper:
+
     dataset_profile = DatasetProfileClass(
-        timestampMillis=int(time.time() * 1000) if not specified_time else specified_time,
+        timestampMillis=int(time.time() * 1000)
+        if not specified_time
+        else specified_time,
         rowCount=data_rowcount if data_rowcount > 0 else None,
-        columnCount= len(fields) if len(fields) >0 else None,
-        fieldProfiles= [DatasetFieldProfileClass(fieldPath=key, 
-                    sampleValues=[str(item) for item in samples[key]]) for key in samples.keys()]
-        )
+        columnCount=len(fields) if len(fields) > 0 else None,
+        fieldProfiles=[
+            DatasetFieldProfileClass(
+                fieldPath=key, sampleValues=[str(item) for item in samples[key]]
+            )
+            for key in samples.keys()
+        ],
+    )
     metadata_proposal = MetadataChangeProposalWrapper(
-                        entityType="dataset",
-                        aspectName="datasetProfile",
-                        changeType=ChangeTypeClass.UPSERT,
-                        entityUrn=dataset_name,
-                        aspect=dataset_profile,
-                        )
+        entityType="dataset",
+        aspectName="datasetProfile",
+        changeType=ChangeTypeClass.UPSERT,
+        entityUrn=dataset_name,
+        aspect=dataset_profile,
+    )
     return metadata_proposal
-            
-def generate_mce_json_output(mce: MetadataChangeEventClass, 
-                            data_sample: Union[MetadataChangeProposalWrapper,None],
-                            file_loc: str) -> None:
+
+
+def generate_mce_json_output(
+    mce: MetadataChangeEventClass,
+    data_sample: Union[MetadataChangeProposalWrapper, None],
+    file_loc: str,
+) -> None:
     """
     Generates the json MCE files that can be ingested via CLI. For debugging
-    """    
+    """
     if data_sample:
         dataset_obj = [mce.to_obj(), data_sample.to_obj()]
     else:
         dataset_obj = [mce.to_obj()]
-    file_name = mce.proposedSnapshot.urn.replace("urn:li:dataset:(urn:li:dataPlatform:", "").split(",")[1]
+    file_name = mce.proposedSnapshot.urn.replace(
+        "urn:li:dataset:(urn:li:dataPlatform:", ""
+    ).split(",")[1]
     path = os.path.join(file_loc, f"{file_name}.json")
 
     with open(path, "w") as f:

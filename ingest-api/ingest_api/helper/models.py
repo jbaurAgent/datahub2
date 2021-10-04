@@ -1,7 +1,6 @@
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Union
 
-from pydantic import BaseModel, validator
-from typing_extensions import TypedDict
+from pydantic import BaseModel
 
 
 class FieldParam(BaseModel):
@@ -20,7 +19,7 @@ class create_dataset_params(BaseModel):
     dataset_origin: str = ""
     hasHeader: str = "n/a"
     headerLine: int = 1
-    dataset_rowcount=-1
+    dataset_rowcount = -1
     dataset_samples: Union[None, Dict[str, List[str]]] = None
 
     class Config:
@@ -34,7 +33,7 @@ class create_dataset_params(BaseModel):
                 "dataset_origin": "this dataset found came from... ie internet",
                 "hasHeader": "no",
                 "headerLine": 1,
-                "dataset_rowcount":10,                
+                "dataset_rowcount": 10,
                 "dataset_fields": [
                     {
                         "field_name": "columnA",
@@ -51,18 +50,8 @@ class create_dataset_params(BaseModel):
                     "columnA": ["colA_sample1_in_string", "colA_sample2_in_string"],
                     "columnB": ["colB_sample1_in_string", "colB_sample2_in_string"],
                 },
-                    
             }
         }
-
-    # @validator('dataset_name')
-    # def dataset_name_alphanumeric(cls, v):
-    #     assert len(set(v).difference(ascii_letters+digits+' -_/\\'))==0, 'dataset_name must be alphanumeric/space character only'
-    #     return v
-    # @validator('dataset_type')
-    # def dataset_type_alphanumeric(cls, v):
-    #     assert v.isalpha(), 'dataset_type must be alphabetical string only'
-    #     return v
 
 
 class dataset_status_params(BaseModel):
@@ -77,9 +66,11 @@ def determine_type(type_input: Union[str, Dict[str, str]]) -> str:
     """
     if isinstance(type_input, Dict):
         type_input = type_input.get("dataset_type", "")
-    if (type_input.lower() in ["text/csv", 
-                                "application/octet-stream",
-                                "application/vnd.ms-excel"]): 
+    if type_input.lower() in [
+        "text/csv",
+        "application/octet-stream",
+        "application/vnd.ms-excel",
+    ]:
         return "csv"
     if type_input.lower() == "json":
         return "json"

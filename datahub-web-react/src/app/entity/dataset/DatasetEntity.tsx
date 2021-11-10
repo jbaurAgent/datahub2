@@ -21,6 +21,7 @@ import { SidebarTagsSection } from '../shared/containers/profile/sidebar/Sidebar
 import { SidebarStatsSection } from '../shared/containers/profile/sidebar/Dataset/StatsSidebarSection';
 import StatsTab from '../shared/tabs/Dataset/Stats/StatsTab';
 import { LineageTab } from '../shared/tabs/Lineage/LineageTab';
+import EditSchemaTab from '../shared/tabs/Dataset/Schema/EditSchemaTab';
 
 const MatchTag = styled(Tag)`
     &&& {
@@ -109,6 +110,12 @@ export class DatasetEntity implements Entity<Dataset> {
                     component: StatsTab,
                     shouldHide: (_, dataset: GetDatasetQuery) =>
                         !dataset?.dataset?.datasetProfiles?.length && !dataset?.dataset?.usageStats?.buckets?.length,
+                },
+                {
+                    name: 'Edit Schema',
+                    component: EditSchemaTab,
+                    // shouldHide: (_, dataset: GetDatasetQuery) =>
+                    //     !dataset?.dataset?.datasetProfiles?.length && !dataset?.dataset?.usageStats?.buckets?.length,
                 },
             ]}
             sidebarSections={[

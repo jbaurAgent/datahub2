@@ -119,6 +119,9 @@ query getDataset($urn: String!) {
                 sampleValues
             }
         }
+        status {
+            removed
+        }
     }
 }
 

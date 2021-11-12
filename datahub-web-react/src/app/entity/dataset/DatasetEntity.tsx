@@ -9,12 +9,7 @@ import { FIELDS_TO_HIGHLIGHT } from './search/highlights';
 import { Direction } from '../../lineage/types';
 import getChildren from '../../lineage/utils/getChildren';
 import { EntityProfile } from '../shared/containers/profile/EntityProfile';
-import {
-    GetDatasetOwnersSpecialQuery,
-    GetDatasetQuery,
-    useGetDatasetQuery,
-    useUpdateDatasetMutation,
-} from '../../../graphql/dataset.generated';
+import { GetDatasetQuery, useGetDatasetQuery, useUpdateDatasetMutation } from '../../../graphql/dataset.generated';
 import { GenericEntityProperties } from '../shared/types';
 import { PropertiesTab } from '../shared/tabs/Properties/PropertiesTab';
 import { DocumentationTab } from '../shared/tabs/Documentation/DocumentationTab';
@@ -26,8 +21,8 @@ import { SidebarTagsSection } from '../shared/containers/profile/sidebar/Sidebar
 import { SidebarStatsSection } from '../shared/containers/profile/sidebar/Dataset/StatsSidebarSection';
 import StatsTab from '../shared/tabs/Dataset/Stats/StatsTab';
 import { LineageTab } from '../shared/tabs/Lineage/LineageTab';
-import EditSchemaTab from '../shared/tabs/Dataset/Schema/EditSchemaTab';
-import { useGetMeQuery } from '../../../graphql/me.generated';
+import { EditSchemaTab } from '../shared/tabs/Dataset/Schema/EditSchemaTab';
+// import { useGetMeQuery } from '../../../graphql/me.generated';
 
 const MatchTag = styled(Tag)`
     &&& {
@@ -120,11 +115,11 @@ export class DatasetEntity implements Entity<Dataset> {
                 {
                     name: 'Edit Schema',
                     component: EditSchemaTab,
-                    shouldHide: (_, _dataset: GetDatasetOwnersSpecialQuery) => {
-                        const { data} = useGetMeQuery();
-                        const value = data?.me?.corpUser?.username==='datahub';
-                        return value;
-                    },
+                    // shouldHide: (_, _dataset: GetDatasetOwnersSpecialQuery) => {
+                    //     const { data} = useGetMeQuery();
+                    //     const value = data?.me?.corpUser?.username==='datahub';
+                    //     return value;
+                    // },
                 },
             ]}
             sidebarSections={[

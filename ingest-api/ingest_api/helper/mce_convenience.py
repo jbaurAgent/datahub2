@@ -226,10 +226,11 @@ def generate_json_output(mce: MetadataChangeEventClass, file_loc: str) -> None:
 
 def make_delete_mce(
     dataset_name: str,
+    desired_state: bool
 ) -> MetadataChangeEventClass:
     return MetadataChangeEventClass(
         proposedSnapshot=DatasetSnapshotClass(
-            urn=dataset_name, aspects=[StatusClass(removed=True)]
+            urn=dataset_name, aspects=[StatusClass(removed=desired_state)]
         )
     )
 

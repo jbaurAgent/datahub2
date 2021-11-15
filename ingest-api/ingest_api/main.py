@@ -2,7 +2,7 @@ import os
 from os import environ
 import logging
 from logging.handlers import TimedRotatingFileHandler
-
+import time
 import uvicorn
 from datahub.emitter.rest_emitter import DatahubRestEmitter
 from fastapi import FastAPI, Response
@@ -22,7 +22,7 @@ from ingest_api.helper.models import (FieldParam, create_dataset_params,
                                       dataset_status_params, determine_type)
 
 # when DEBUG = true, im not running ingest_api from container, but from localhost python interpreter, hence need to change the endpoint used.
-DEBUG = False
+DEBUG = True
 if environ.get("DATAHUB_URL") is not None:
     datahub_url = os.environ["DATAHUB_URL"]
 else:
@@ -58,7 +58,7 @@ app = FastAPI(
     description="For generating datasets",
     version="0.0.2",
 )
-origins = ["http://localhost:9002", "http://172.19.0.1:9002"]
+origins = ["http://localhost:9002", "http://172.19.0.1:9002", "http://localhost:3000"]
 if environ.get("ACCEPT_ORIGINS") is not None:
     new_origin = environ["ACCEPT_ORIGINS"]
     origins.append(new_origin)
@@ -68,7 +68,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["POST", "GET"],
+    allow_methods=["POST", "GET", "OPTIONS"],
 )
 
 
@@ -79,7 +79,11 @@ async def hello_world() -> None:
     """
     ## how to check that this dataset exist? - curl to GMS?
     rootLogger.info("hello world is called")
-    return "API is alive"
+    return {
+        'message':"<b>Forth Announcement</b>", 
+        'timestamp': int(time.time()*1000)
+        # 'timestamp': 1636964967000
+    }
 
 
 @app.post("/make_dataset")
@@ -184,9 +188,8 @@ async def delete_item(item: dataset_status_params) -> None:
     This endpoint is to support soft delete of datasets. Still require a database/ES chron job to remove the entries though, it only suppresses it from search and UI
     """
     ## how to check that this dataset exist? - curl to GMS?
-    rootLogger.info("remove_dataset_request_received {}".format(item))
-    datasetName = make_dataset_urn(item.platform, item.dataset_name)
-    mce = make_delete_mce(dataset_name=datasetName)
+    rootLogger.info("remove_dataset_request_received {}".format(item))    
+    mce = make_delete_mce(dataset_name=item.dataset_name, desired_state=item.desired_status)
     try:
         emitter = DatahubRestEmitter(rest_endpoint)
         emitter.emit_mce(mce)
@@ -198,8 +201,8 @@ async def delete_item(item: dataset_status_params) -> None:
             status_code=502,
         )
     rootLogger.info(
-        "remove_dataset_request_completed_for {} requested_by {}".format(
-            item.dataset_name, item.requestor
+        "remove_dataset_request_{}_completed_for {} requested_by {}".format(
+            item.dataset_name, item.desired_status, item.requestor
         )
     )
     return Response(

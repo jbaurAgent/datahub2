@@ -60,7 +60,7 @@ class create_dataset_params(BaseModel):
 class dataset_status_params(BaseModel):
     dataset_name: str
     requestor: str
-    platform: str
+    desired_status: bool
 
 
 def determine_type(type_input: Union[str, Dict[str, str]]) -> str:

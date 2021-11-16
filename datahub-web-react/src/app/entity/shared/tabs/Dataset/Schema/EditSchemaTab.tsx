@@ -5,6 +5,7 @@ import { useGetAuthenticatedUser } from '../../../../../useGetAuthenticatedUser'
 import { useBaseEntity } from '../../../EntityContext';
 import { DeleteSchemaTab } from './DeleteSchemaTab';
 import { EditSchemaTable } from './EditSchemaTable';
+// import EditSchemaTableNew from './EditSchemaTableNew';
 
 export const EditSchemaTab = () => {
     const queryBase = useBaseEntity<GetDatasetOwnersSpecialQuery>()?.dataset?.ownership?.owners;
@@ -16,8 +17,9 @@ export const EditSchemaTab = () => {
             <>
                 <br />
                 <DeleteSchemaTab />
-                <br />
                 <EditSchemaTable />
+                <br />
+                {/* <EditSchemaTableNew /> */}
             </>
         );
     }

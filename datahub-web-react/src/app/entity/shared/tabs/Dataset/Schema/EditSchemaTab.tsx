@@ -1,7 +1,7 @@
 // import { Empty } from 'antd';
 import React from 'react';
 // import { getBrowsePathsResolver } from '../../../../../../graphql-mock/resolver/getBrowsePathsResolver';
-// import { gql, useQuery } from '@apollo/client';
+import { gql, useQuery } from '@apollo/client';
 import { GetDatasetOwnersSpecialQuery, GetDatasetQuery } from '../../../../../../graphql/dataset.generated';
 // import { BrowsePath } from '../../../../../../types.generated';
 import { useGetAuthenticatedUser } from '../../../../../useGetAuthenticatedUser';
@@ -22,21 +22,23 @@ export const EditSchemaTab = () => {
     const baseEntity = useBaseEntity<GetDatasetQuery>();
     const currUrn = baseEntity && baseEntity.dataset && baseEntity.dataset?.urn;
     console.log(currUrn);
-    // const queryresult = gql`
-    //     {
-    //         browsePaths(
-    //             input: {
-    //                 urn: "${currUrn}"
-    //                 type: DATASET
-    //             }
-    //         ) {
-    //             path
-    //         }
-    //     }
-    // `;
-    // const { data } = useQuery(queryresult);
-    // console.log(data.browsePaths.length);
-    // data.browsePaths.map((x) => console.log(x.path));
+    const queryresult = gql`
+        {
+            browsePaths(
+                input: {
+                    urn: "${currUrn}"
+                    type: DATASET
+                }
+            ) {
+                path
+            }
+        }
+    `;
+    const { data } = useQuery(queryresult, { skip: currUrn === undefined });
+    // data && data.browsePaths.map
+    if (data) {
+        data.browsePaths.map((x) => console.log(x.path));
+    }
     if (ownersArray2.includes(currUser)) {
         return (
             <>

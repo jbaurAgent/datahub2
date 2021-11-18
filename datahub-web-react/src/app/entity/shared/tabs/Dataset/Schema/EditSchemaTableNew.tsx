@@ -6,6 +6,7 @@ import { MenuOutlined } from '@ant-design/icons';
 import { arrayMoveImmutable } from 'array-move';
 // import { useBaseEntity } from '../../../EntityContext';
 // import { GetDatasetQuery } from '../../../../../../graphql/dataset.generated';
+//draggable version with button
 
 const DragHandle = SortableHandle(() => <MenuOutlined style={{ cursor: 'grab', color: '#999' }} />);
 type DataArray = {

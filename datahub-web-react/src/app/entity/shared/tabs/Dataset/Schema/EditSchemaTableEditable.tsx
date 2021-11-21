@@ -1,6 +1,6 @@
 // import { Empty } from 'antd';
 import React, { useState } from 'react';
-import { Form, Input, Popconfirm, Table, Typography } from 'antd';
+import { Button, Divider, Form, Input, Select, Table, Typography } from 'antd';
 import PropTypes from 'prop-types';
 import { useBaseEntity } from '../../../EntityContext';
 import { GetDatasetQuery } from '../../../../../../graphql/dataset.generated';
@@ -8,9 +8,39 @@ import { GetDatasetQuery } from '../../../../../../graphql/dataset.generated';
 // import { GetDatasetQuery } from '../../../../../../graphql/dataset.generated';
 // editable version
 
+const { Option } = Select;
+
 export const EditSchemaTableEditable = () => {
-    const EditableCell = ({ editing, dataIndex, title, _record, _index, children, ...restProps }) => {
-        const inputNode = <Input />;
+    const queryFields = useBaseEntity<GetDatasetQuery>()?.dataset?.schemaMetadata?.fields;
+    const dataSource = queryFields?.map((x, ind) => {
+        return {
+            key: ind,
+            name: x?.fieldPath,
+            datahubType: x?.type as string,
+            nativeDataType: x?.nativeDataType as string,
+            editKey: ind.toString(),
+        };
+    });
+    const formalData = dataSource || [];
+    const [form] = Form.useForm();
+    const [data, setData] = useState(formalData);
+    const [allrows, updateSelected] = useState({ selected: [] as any });
+    const [editingKey, setEditingKey] = useState('');
+    const EditableCell = ({ editing, dataIndex, title, _record, _index, children, inputType, ...restProps }) => {
+        const selector = (
+            <Select placeholder="Does the file contains header" data-testid="select">
+                <Option value="STRING">STRING</Option>
+                <Option value="NUMBER">NUMBER</Option>
+                <Option value="BOOLEAN">BOOLEAN</Option>
+                <Option value="TIME">TIME</Option>
+                <Option value="DATE">DATE</Option>
+                <Option value="BYTES">BYTES</Option>
+                <Option value="NULL">NULL</Option>
+                <Option value="RECORD">RECORD</Option>
+                <Option value="ARRAY">ARRAY</Option>
+            </Select>
+        );
+        const inputNode = inputType === 'select' ? selector : <Input />;
         return (
             <td {...restProps}>
                 {editing ? (
@@ -38,33 +68,21 @@ export const EditSchemaTableEditable = () => {
         title: PropTypes.objectOf(PropTypes.any).isRequired,
         editing: PropTypes.objectOf(PropTypes.any).isRequired,
         children: PropTypes.objectOf(PropTypes.any).isRequired,
+        inputType: PropTypes.objectOf(PropTypes.any).isRequired,
         dataIndex: PropTypes.objectOf(PropTypes.any).isRequired,
         _record: PropTypes.objectOf(PropTypes.any).isRequired,
         handleSave: PropTypes.objectOf(PropTypes.any).isRequired,
         _index: PropTypes.objectOf(PropTypes.any).isRequired,
     };
-    const queryFields = useBaseEntity<GetDatasetQuery>()?.dataset?.schemaMetadata?.fields;
-    const dataSource = queryFields?.map((x, ind) => {
-        return {
-            key: ind,
-            name: x?.fieldPath,
-            datahubType: x?.type,
-            nativeType: x?.nativeDataType,
-            index: ind,
-        };
-    });
-    const formalData = dataSource || [];
-    const [form] = Form.useForm();
-    const [data, setData] = useState(formalData);
-    const [editingKey, setEditingKey] = useState('');
 
     const isEditing = (record) => record.key === editingKey;
 
     const edit = (record) => {
         form.setFieldsValue({
             name: '',
-            age: '',
-            address: '',
+            datahubType: '',
+            nativeDataType: '',
+            editKey: '',
             ...record,
         });
         setEditingKey(record.key);
@@ -99,24 +117,25 @@ export const EditSchemaTableEditable = () => {
         {
             title: 'Name',
             dataIndex: 'name',
-            width: '25%',
+            width: '45%',
             editable: true,
         },
         {
-            title: 'Type',
+            title: 'Data Type',
             dataIndex: 'datahubType',
             width: '15%',
             editable: true,
         },
         {
-            title: 'NativeType',
-            dataIndex: 'nativeType',
-            width: '40%',
+            title: 'Native DataType',
+            dataIndex: 'nativeDataType',
+            width: '35%',
             editable: true,
         },
         {
-            title: 'operation',
+            title: 'Edit',
             dataIndex: 'operation',
+            width: '35%',
             render: (_, record) => {
                 const editable = isEditing(record);
                 return editable ? (
@@ -130,17 +149,15 @@ export const EditSchemaTableEditable = () => {
                         >
                             Save
                         </button>
-                        <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
-                            <button
-                                type="button"
-                                onClick={(e) => e}
-                                style={{
-                                    marginRight: 8,
-                                }}
-                            >
-                                Cancel
-                            </button>
-                        </Popconfirm>
+                        <button
+                            type="button"
+                            onClick={() => cancel()}
+                            style={{
+                                marginRight: 8,
+                            }}
+                        >
+                            Cancel
+                        </button>
                     </span>
                 ) : (
                     <Typography.Link disabled={editingKey !== ''} onClick={() => edit(record)}>
@@ -150,6 +167,13 @@ export const EditSchemaTableEditable = () => {
             },
         },
     ];
+    const rowSelection = {
+        onChange: (selectedRowKeys, selectedRows) => {
+            allrows.selected = Array.from(selectedRowKeys);
+            updateSelected(allrows);
+            console.log(allrows.selected, selectedRows);
+        },
+    };
     const mergedColumns = columns.map((col) => {
         if (!col.editable) {
             return col;
@@ -159,20 +183,110 @@ export const EditSchemaTableEditable = () => {
             ...col,
             onCell: (record) => ({
                 record,
-                inputType: col.dataIndex === 'age' ? 'number' : 'text',
                 dataIndex: col.dataIndex,
+                inputType: col.dataIndex === 'datahubType' ? 'select' : 'text',
                 title: col.title,
                 editing: isEditing(record),
             }),
         };
     });
+    const submitData = () => {
+        console.log(data);
+    };
+    const deleteRow = () => {
+        const removeCandidate = allrows.selected.reverse();
+        const newArr = data.filter((item) => !removeCandidate.includes(item.key));
+        setData(newArr);
+        allrows.selected = [] as any;
+        updateSelected(allrows);
+    };
+    function swap(arr: Array<any>, x: number, down: boolean) {
+        const newArr = arr;
+        if (down) {
+            if (x === 0) {
+                return newArr;
+            }
+            const temp = newArr[x];
+            newArr[x] = newArr[x - 1];
+            newArr[x - 1] = temp;
+            return newArr;
+        }
+        // if up
+        if (x === newArr.length - 1) {
+            return arr;
+        }
+        const temp = newArr[x];
+        newArr[x] = newArr[x + 1];
+        newArr[x + 1] = temp;
+        return newArr;
+    }
+
+    const shiftDownwards = () => {
+        const selected = { ...allrows };
+        let currArray = [...data];
+        for (let i = 0; i < selected.selected.length; i++) {
+            currArray = swap(currArray, selected.selected[i], false);
+            if (selected.selected[i] !== currArray.length - 1) selected.selected[i] += 1;
+        }
+        setData(currArray);
+        updateSelected(selected);
+        // console.log(data);
+        console.log(allrows.selected);
+    };
+
+    const shiftUpwards = () => {
+        const selected = { ...allrows };
+        let currArray = [...data];
+        for (let i = 0; i < selected.selected.length; i++) {
+            currArray = swap(currArray, selected.selected[i], true);
+            if (selected.selected[i] !== 0) selected.selected[i] -= 1;
+        }
+        setData(currArray);
+        updateSelected(selected);
+        // console.log(data);
+        console.log(allrows.selected);
+    };
+    const addRow = () => {
+        const newData = {
+            name: 'new Field',
+            key: data.length + 1,
+            datahubType: 'STRING',
+            nativeDataType: 'freetext: users can view this when they mouse over Data Type in Schema',
+            editKey: (data.length + 1).toString(),
+        };
+        const newArr = [...data];
+        newArr[data.length] = newData;
+        setData(newArr);
+        console.log('add a row here');
+        console.log('selectedRowKey is', allrows.selected);
+    };
+    const resetState = () => {
+        setData(formalData);
+        allrows.selected = [] as any;
+        updateSelected(allrows);
+    };
     return (
         <Form form={form} component={false}>
+            <Button onClick={addRow}>Add New Row</Button>
+            <Button onClick={deleteRow}>Delete Row</Button>
+            &nbsp;
+            <Button onClick={shiftUpwards}>&#x2191;</Button>
+            <Button onClick={shiftDownwards}>&#x2193;</Button>
+            &nbsp;
+            <Button onClick={submitData}>Confirm Changes</Button>
+            <Button onClick={resetState}>Cancel</Button>
+            <Divider dashed orientation="left">
+                Edit Schema of Dataset Here
+            </Divider>
             <Table
                 components={{
                     body: {
                         cell: EditableCell,
                     },
+                }}
+                rowSelection={{
+                    type: 'checkbox',
+                    ...rowSelection,
                 }}
                 bordered
                 dataSource={data}

@@ -3,9 +3,10 @@ import React from 'react';
 import { GetDatasetOwnersSpecialQuery } from '../../../../../../graphql/dataset.generated';
 import { useGetAuthenticatedUser } from '../../../../../useGetAuthenticatedUser';
 import { useBaseEntity } from '../../../EntityContext';
-import { DeleteSchemaTab } from './DeleteSchemaTab';
-import { EditSchemaTableReorder } from './EditSchemaTableReorder';
-import { EditBrowsePathTable } from '../BrowsePath/EditBrowsePathTable';
+// import { DeleteSchemaTab } from './DeleteSchemaTab';
+// import EditSchemaTableNew from './EditSchemaTableNew';
+import { EditSchemaTableEditable } from './EditSchemaTableEditable';
+// import { EditBrowsePathTable } from '../BrowsePath/EditBrowsePathTable';
 
 export const EditSchemaTab = () => {
     const queryBase = useBaseEntity<GetDatasetOwnersSpecialQuery>()?.dataset?.ownership?.owners;
@@ -17,10 +18,11 @@ export const EditSchemaTab = () => {
         return (
             <>
                 <br />
-                <DeleteSchemaTab />
+                {/* <DeleteSchemaTab /> */}
                 <br />
-                <EditSchemaTableReorder />
-                <EditBrowsePathTable />
+                {/* <EditSchemaTableNew query={queryFields} /> */}
+                <EditSchemaTableEditable />
+                {/* <EditBrowsePathTable /> */}
             </>
         );
     }

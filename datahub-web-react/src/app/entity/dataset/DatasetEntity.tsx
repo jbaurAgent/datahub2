@@ -9,7 +9,12 @@ import { FIELDS_TO_HIGHLIGHT } from './search/highlights';
 import { Direction } from '../../lineage/types';
 import getChildren from '../../lineage/utils/getChildren';
 import { EntityProfile } from '../shared/containers/profile/EntityProfile';
-import { GetDatasetQuery, useGetDatasetQuery, useUpdateDatasetMutation } from '../../../graphql/dataset.generated';
+import {
+    GetDatasetOwnersSpecialQuery,
+    GetDatasetQuery,
+    useGetDatasetQuery,
+    useUpdateDatasetMutation,
+} from '../../../graphql/dataset.generated';
 import { GenericEntityProperties } from '../shared/types';
 import { PropertiesTab } from '../shared/tabs/Properties/PropertiesTab';
 import { DocumentationTab } from '../shared/tabs/Documentation/DocumentationTab';
@@ -22,6 +27,7 @@ import { SidebarStatsSection } from '../shared/containers/profile/sidebar/Datase
 import StatsTab from '../shared/tabs/Dataset/Stats/StatsTab';
 import { LineageTab } from '../shared/tabs/Lineage/LineageTab';
 import { EditSchemaTab } from '../shared/tabs/Dataset/Schema/EditSchemaTab';
+import { useGetMeQuery } from '../../../graphql/me.generated';
 // import { useGetMeQuery } from '../../../graphql/me.generated';
 
 const MatchTag = styled(Tag)`
@@ -30,6 +36,11 @@ const MatchTag = styled(Tag)`
         margin-top: 10px;
     }
 `;
+function FindWhoAmI() {
+    const { data } = useGetMeQuery();
+    const whoami = data?.me?.corpUser?.username;
+    return whoami;
+}
 
 /**
  * Definition of the DataHub Dataset entity.
@@ -115,11 +126,21 @@ export class DatasetEntity implements Entity<Dataset> {
                 {
                     name: 'Edit Schema',
                     component: EditSchemaTab,
-                    // shouldHide: (_, _dataset: GetDatasetOwnersSpecialQuery) => {
-                    //     const { data} = useGetMeQuery();
-                    //     const value = data?.me?.corpUser?.username==='datahub';
-                    //     return value;
-                    // },
+                    shouldHide: (_, _dataset: GetDatasetOwnersSpecialQuery) => {
+                        const currUser = FindWhoAmI() as string;
+                        const owners = _dataset?.dataset?.ownership?.owners;
+                        const ownersArray = owners?.map((x) =>
+                            x?.type === 'DATAOWNER' ? x?.owner?.urn.split(':').slice(-1) : '',
+                        );
+                        const ownersArray2 = ownersArray?.flat() ?? [];
+                        console.log(`currUser is ${currUser}`);
+                        if (ownersArray2.includes(currUser)) {
+                            console.log('return true');
+                            return false;
+                        }
+                        console.log('return false');
+                        return false;
+                    },
                 },
             ]}
             sidebarSections={[

@@ -58,6 +58,7 @@ class DatahubRestEmitter:
         connect_timeout_sec: Optional[float] = None,
         read_timeout_sec: Optional[float] = None,
         ca_cert: Optional[str] = None,
+        actor: Optional[str] = None,
     ):
         if ":9002" in gms_server:
             logger.warning(
@@ -74,6 +75,11 @@ class DatahubRestEmitter:
                 "Content-Type": "application/json",
             }
         )
+        if actor:
+            self._session.headers.update({
+                "X-DataHub-Actor": actor
+                }
+            )
         if token:
             self._session.headers.update({"Authorization": f"Bearer {token}"})
 

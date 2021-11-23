@@ -9,6 +9,11 @@ class FieldParam(BaseModel):
     field_type: str
     field_description: str = None
 
+class FieldParamWithSample(BaseModel):
+    field_name: str
+    field_native_type: str
+    datahub_type: str
+    samples: List[str]
 
 class create_dataset_params(BaseModel):
     dataset_name: str
@@ -60,7 +65,19 @@ class create_dataset_params(BaseModel):
 class dataset_status_params(BaseModel):
     dataset_name: str
     requestor: str
-    platform: str
+    desired_state: bool
+
+class browsepath_params(BaseModel):
+    dataset_name: str
+    requestor: str
+    browsepath: List[str]
+
+class schema_properties_params(BaseModel):
+    dataset_name: str
+    requestor: str
+    description: str
+    properties: Dict[str,Union(str, int)]    
+    dataset_fields: List[FieldParamWithSample]
 
 
 def determine_type(type_input: Union[str, Dict[str, str]]) -> str:

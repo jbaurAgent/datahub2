@@ -14,21 +14,24 @@ from ingest_api.helper.mce_convenience import (generate_json_output,
                                                make_browsepath_mce,
                                                make_dataset_description_mce,
                                                make_dataset_urn,
-                                               make_delete_mce,
+                                               make_status_mce,
                                                make_ownership_mce,
-                                               make_platform, make_recover_mce,
-                                               make_schema_mce, make_user_urn)
-from ingest_api.helper.models import (FieldParam, create_dataset_params,
-                                      dataset_status_params, determine_type)
+                                               make_platform,
+                                               make_schema_mce, make_user_urn, 
+                                               update_field_param_class, create_new_schema_mce,
+                                               derive_platform_name)
+from ingest_api.helper.models import (create_dataset_params,
+                                    schema_properties_params, browsepath_params,
+                                    dataset_status_params, determine_type)
 
 # when DEBUG = true, im not running ingest_api from container, but from localhost python interpreter, hence need to change the endpoint used.
-DEBUG = False
+CLI_MODE = False
 if environ.get("DATAHUB_URL") is not None:
     datahub_url = os.environ["DATAHUB_URL"]
 else:
     datahub_url = "http://localhost:9002"
-api_emitting_port = 80 if not DEBUG else 8001
-rest_endpoint = "http://datahub-gms:8080" if not DEBUG else "http://localhost:8080"
+api_emitting_port = 80 if not CLI_MODE else 8001
+rest_endpoint = "http://datahub-gms:8080" if not CLI_MODE else "http://localhost:8080"
 
 rootLogger = logging.getLogger("__name__")
 logformatter = logging.Formatter("%(asctime)s;%(levelname)s;%(message)s")
@@ -39,7 +42,7 @@ streamLogger.setFormatter(logformatter)
 streamLogger.setLevel(logging.DEBUG)
 rootLogger.addHandler(streamLogger)
 
-if not DEBUG:
+if not CLI_MODE:
     if not os.path.exists("/var/log/ingest/"):
         os.mkdir("/var/log/ingest/")
     if not os.path.exists("/var/log/ingest/json"):
@@ -68,7 +71,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["POST", "GET"],
+    allow_methods=["POST", "GET", "OPTIONS"],
 )
 
 
@@ -80,6 +83,96 @@ async def hello_world() -> None:
     ## how to check that this dataset exist? - curl to GMS?
     rootLogger.info("hello world is called")
     return "API is alive"
+
+@app.post("/update_browsepath")
+async def update_browsepath(item: browsepath_params):
+    #i expect the following:
+    #name: do not touch
+    #schema will generate schema metatdata (not the editable version)
+    #properties: get description from graphql and props from form. This will form DatasetProperty (Not EditableDatasetProperty)
+    #platform info: needed for schema
+    rootLogger.info("update_browsepath_request_received {}".format(item))
+    dataset_snapshot = DatasetSnapshot(
+            urn=item.dataset_name,
+            aspects=[],
+    )
+    browsepath_aspect = make_browsepath_mce(dataset_urn=item.dataset_name, path = item.browsepath)
+    dataset_snapshot.append(browsepath_aspect)
+    metadata_record = MetadataChangeEvent(proposedSnapshot=dataset_snapshot)
+    emit_mce_respond(
+        metadata_record=metadata_record,
+        owner = item.requestor,        
+        event = "UI Update Browsepath"
+    )
+
+@app.post("/update_schema_properties")
+async def update_schema_prop(item: schema_properties_params):
+    #i expect the following:
+    #name: do not touch
+    #schema will generate schema metatdata (not the editable version)
+    #properties: get description from graphql and props from form. This will form DatasetProperty (Not EditableDatasetProperty)
+    #platform info: needed for schema
+    rootLogger.info("update_schema_request_received {}".format(item))
+    datasetName = item.dataset_name
+    dataset_snapshot = DatasetSnapshot(
+            urn=datasetName,
+            aspects=[],
+    )
+    description = item.get("description", "")
+    properties = item.get("properties", {})
+    property_aspect = make_dataset_description_mce(
+        dataset_name=datasetName,
+        description=description,
+        customProperties=properties,
+    )
+    dataset_snapshot.append(property_aspect)
+    platformName = derive_platform_name(datasetName)
+    field_params = update_field_param_class(item.dataset_fields)
+
+    schemaMetadata_aspect = make_schema_mce(        
+        platformName=platformName,
+        actor=item.requestor,
+        fields=field_params,
+    )
+    dataset_snapshot.append(schemaMetadata_aspect)
+    metadata_record = MetadataChangeEvent(proposedSnapshot=dataset_snapshot)
+    emit_mce_respond(
+        metadata_record=metadata_record,
+        owner = item.requestor,        
+        event = "UI Update Schema/Properties"
+    )
+
+def emit_mce_respond(metadata_record:MetadataChangeEvent, owner: str, event: str) -> None:    
+    datasetName = metadata_record.proposedSnapshot.urn
+    for mce in metadata_record.proposedSnapshot.aspects:
+        if not mce.validate():
+            rootLogger.error(
+                f"{mce.__class__} is not defined properly"
+            )
+            return Response(
+                f"MCE was incorrectly defined for {mce.proposedSnapshot.aspects[0].__class__} aspect. {event} was aborted",
+                status_code=400,
+            )
+    if not CLI_MODE:
+        generate_json_output(metadata_record, "/var/log/ingest/json")
+    try:
+        rootLogger.error(metadata_record)
+        emitter = DatahubRestEmitter(rest_endpoint, actor=owner)
+        emitter.emit_mce(metadata_record)
+        emitter._session.close()
+    except Exception as e:
+        rootLogger.debug(e)
+        return Response(
+            f"{event} failed because upstream error {e}",
+            status_code=500,
+        )
+    rootLogger.info(
+        f"{event} {datasetName} requested_by {owner} completed successfully")
+    return Response(
+        f"{event} successfully completed".format(
+            datasetName),
+        status_code=201,
+    )
 
 
 @app.post("/make_dataset")
@@ -114,7 +207,7 @@ async def create_item(item: create_dataset_params) -> None:
     dataset_snapshot = DatasetSnapshot(
             urn=datasetName,
             aspects=[],
-        )
+    )
     dataset_snapshot.aspects.append(
         make_dataset_description_mce(
             dataset_name=datasetName,
@@ -135,104 +228,24 @@ async def create_item(item: create_dataset_params) -> None:
         field_params.append(current_field)
 
     dataset_snapshot.aspects.append(
-        make_schema_mce(
-            dataset_urn=datasetName,
+        create_new_schema_mce(            
             platformName=platformName,
             actor=requestor,
             fields=field_params,
         )
     )
-    metadata_record = MetadataChangeEvent(proposedSnapshot=dataset_snapshot)
-    for mce in metadata_record.proposedSnapshot.aspects:
-        if not mce.validate():
-            rootLogger.error(
-                f"{mce.__class__} is not defined properly"
-            )
-            return Response(
-                f"Dataset was not created because dataset definition has encountered an error for {mce.proposedSnapshot.aspects[0].__class__}",
-                status_code=400,
-            )
-    if not DEBUG:
-        generate_json_output(metadata_record, "/var/log/ingest/json")
-    try:
-        rootLogger.error(metadata_record)
-        emitter = DatahubRestEmitter(rest_endpoint)
-        emitter.emit_mce(metadata_record)
-        emitter._session.close()
-    except Exception as e:
-        rootLogger.debug(e)
-        return Response(
-            "Dataset was not created because upstream has encountered an error {}".format(e),
-            status_code=500,
-        )
-    rootLogger.info(
-        "Make_dataset_request_completed_for {} requested_by {}".format(
-            item.dataset_name, item.dataset_owner
-        )
-    )
-    return Response(
-        "dataset can be found at /dataset/{}".format(
-            make_dataset_urn(item.dataset_type, item.dataset_name)
-        ),
-        status_code=201,
-    )
+    metadata_record = MetadataChangeEvent(proposedSnapshot = dataset_snapshot)
+    emit_mce_respond(metadata_record=metadata_record, owner=requestor, event='Create Dataset')
 
 
-@app.post("/delete_dataset")
+@app.post("/update_dataset_status")
 async def delete_item(item: dataset_status_params) -> None:
     """
     This endpoint is to support soft delete of datasets. Still require a database/ES chron job to remove the entries though, it only suppresses it from search and UI
     """
-    ## how to check that this dataset exist? - curl to GMS?
-    rootLogger.info("remove_dataset_request_received {}".format(item))
-    datasetName = make_dataset_urn(item.platform, item.dataset_name)
-    mce = make_delete_mce(dataset_name=datasetName)
-    try:
-        emitter = DatahubRestEmitter(rest_endpoint)
-        emitter.emit_mce(mce)
-        emitter._session.close()
-    except Exception as e:
-        rootLogger.debug(e)
-        return Response(
-            "Request was not fulfilled because upstream has encountered an error {}".format(e),
-            status_code=502,
-        )
-    rootLogger.info(
-        "remove_dataset_request_completed_for {} requested_by {}".format(
-            item.dataset_name, item.requestor
-        )
-    )
-    return Response(
-        "dataset has been removed from search and UI. please refresh the webpage.",
-        status_code=201,
-    )
-
-
-@app.post("/recover_dataset")
-async def recover_item(item: dataset_status_params) -> None:
-    """
-    This endpoint is meant for undoing soft deletes.
-    """    
-    rootLogger.info("recover_dataset_request_received {}".format(item))
-    datasetName = make_dataset_urn(item.platform, item.dataset_name)
-    mce = make_recover_mce(dataset_name=datasetName)
-    try:
-        emitter = DatahubRestEmitter(rest_endpoint)
-        emitter.emit_mce(mce)
-        emitter._session.close()
-    except Exception as e:
-        rootLogger.debug(e)
-        return Response(
-            "Request was not fulfilled because upstream has encountered an error {}".format(e),
-            status_code=502,
-        )
-    rootLogger.info(
-        "recover_dataset_request_completed_for {} requested_by {}".format(
-            item.dataset_name, item.requestor
-        )
-    )
-    return Response("dataset has been restored", status_code=201)
-
+    rootLogger.info("remove_dataset_request_received {}".format(item))    
+    mce = make_status_mce(dataset_name=item.urn)
+    emit_mce_respond(metadata_record=mce, owner= item.requestor, event = f"Status Update removed:{item.desired_state}") 
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=api_emitting_port)

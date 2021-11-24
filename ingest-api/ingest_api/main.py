@@ -178,9 +178,10 @@ def emit_mce_respond(metadata_record:MetadataChangeEvent, owner: str, event: str
                 f"{mce.__class__} is not defined properly"
             )
             return Response(
-                f"MCE was incorrectly defined for {mce.proposedSnapshot.aspects[0].__class__} aspect. {event} was aborted",
+                f"MCE was incorrectly defined. {event} was aborted",
                 status_code=400,
             )
+            return
     if not CLI_MODE:
         generate_json_output(metadata_record, "/var/log/ingest/json")
     try:
@@ -195,6 +196,7 @@ def emit_mce_respond(metadata_record:MetadataChangeEvent, owner: str, event: str
             f"{event} failed because upstream error {e}",
             status_code=500,
         )
+        return
     rootLogger.info(
         f"{event} {datasetName} requested_by {owner} completed successfully")
     return Response(

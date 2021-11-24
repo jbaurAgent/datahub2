@@ -83,7 +83,8 @@ def derive_platform_name(input: str) -> str:
     urn:li:dataset:(urn:li:dataPlatform:{platform},{name},{env})
     """
     platform_name_env = input.replace("urn:li:dataset:(urn:li:dataPlatform:","")
-    platform_name = platform_name_env.split(',')[0]
+    platform = platform_name_env.split(',')[0]
+    platform_name = f"urn:li:dataPlatform:{platform}"
     return platform_name
 
 def make_lineage_mce(

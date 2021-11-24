@@ -49,6 +49,7 @@ class DatahubRestEmitter:
     _session: requests.Session
     _connect_timeout_sec: float = DEFAULT_CONNECT_TIMEOUT_SEC
     _read_timeout_sec: float = DEFAULT_READ_TIMEOUT_SEC
+    _ca_cert: Union[None, str] = None
 
     def __init__(
         self,
@@ -56,6 +57,8 @@ class DatahubRestEmitter:
         token: Optional[str] = None,
         connect_timeout_sec: Optional[float] = None,
         read_timeout_sec: Optional[float] = None,
+        ca_cert: Optional[str] = None,
+        actor: Optional[str] = None,
     ):
         if ":9002" in gms_server:
             logger.warning(
@@ -63,6 +66,7 @@ class DatahubRestEmitter:
             )
         self._gms_server = gms_server
         self._token = token
+        self._ca_cert = ca_cert
 
         self._session = requests.Session()
         self._session.headers.update(
@@ -71,8 +75,16 @@ class DatahubRestEmitter:
                 "Content-Type": "application/json",
             }
         )
+        if actor:
+            self._session.headers.update({
+                "X-DataHub-Actor": actor
+                }
+            )
         if token:
             self._session.headers.update({"Authorization": f"Bearer {token}"})
+
+        if self._ca_cert:
+            self._session.verify = self._ca_cert
 
         if connect_timeout_sec:
             self._connect_timeout_sec = connect_timeout_sec

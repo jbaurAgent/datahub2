@@ -1,9 +1,11 @@
 // import { Empty } from 'antd';
 import React, { useState } from 'react';
-import { Button, Divider, Form, Input, Select, Table, Typography } from 'antd';
+import { Button, Divider, Form, Input, message, Select, Table, Typography } from 'antd';
 import PropTypes from 'prop-types';
+import axios from 'axios';
 import { useBaseEntity } from '../../../EntityContext';
 import { GetDatasetQuery } from '../../../../../../graphql/dataset.generated';
+import { useGetAuthenticatedUser } from '../../../../../useGetAuthenticatedUser';
 // import { useBaseEntity } from '../../../EntityContext';
 // import { GetDatasetQuery } from '../../../../../../graphql/dataset.generated';
 // editable version
@@ -12,12 +14,17 @@ const { Option } = Select;
 
 export const EditSchemaTableEditable = () => {
     const queryFields = useBaseEntity<GetDatasetQuery>()?.dataset?.schemaMetadata?.fields;
+    const urn = useBaseEntity<GetDatasetQuery>()?.dataset?.urn;
+    const currUser = useGetAuthenticatedUser()?.corpUser?.urn || '-';
     const dataSource = queryFields?.map((x, ind) => {
         return {
             key: ind,
-            name: x?.fieldPath,
+            fieldName: x?.fieldPath,
             datahubType: x?.type as string,
             nativeDataType: x?.nativeDataType as string,
+            fieldDescription: x?.description as string,
+            fieldTags: x?.globalTags as string[],
+            fieldGlossaryTerms: x?.glossaryTerms as string[],
             editKey: ind.toString(),
         };
     });
@@ -79,7 +86,7 @@ export const EditSchemaTableEditable = () => {
 
     const edit = (record) => {
         form.setFieldsValue({
-            name: '',
+            fieldName: '',
             datahubType: '',
             nativeDataType: '',
             editKey: '',
@@ -116,7 +123,7 @@ export const EditSchemaTableEditable = () => {
     const columns = [
         {
             title: 'Name',
-            dataIndex: 'name',
+            dataIndex: 'fieldName',
             width: '45%',
             editable: true,
         },
@@ -190,8 +197,22 @@ export const EditSchemaTableEditable = () => {
             }),
         };
     });
+    const printSuccessMsg = (status) => {
+        message.success(`Status:${status} - Request submitted successfully`, 3).then();
+    };
+    const printErrorMsg = (error) => {
+        message.error(error, 3).then();
+    };
+
     const submitData = () => {
-        console.log(data);
+        const dataClone = data.map((x) => x);
+        const dataSubmission = { dataset_name: urn, requestor: currUser, dataset_fields: dataClone };
+        axios
+            .post('http://localhost:8001/update_schema', dataSubmission)
+            .then((response) => printSuccessMsg(response.status))
+            .catch((error) => {
+                printErrorMsg(error.toString());
+            });
     };
     const deleteRow = () => {
         const removeCandidate = allrows.selected.reverse();
@@ -248,17 +269,18 @@ export const EditSchemaTableEditable = () => {
     };
     const addRow = () => {
         const newData = {
-            name: 'new Field',
+            fieldName: 'new Field',
             key: data.length + 1,
             datahubType: 'STRING',
             nativeDataType: 'freetext: users can view this when they mouse over Data Type in Schema',
+            fieldDescription: '',
+            fieldTags: [''],
+            fieldGlossaryTerms: [''],
             editKey: (data.length + 1).toString(),
         };
         const newArr = [...data];
         newArr[data.length] = newData;
         setData(newArr);
-        console.log('add a row here');
-        console.log('selectedRowKey is', allrows.selected);
     };
     const resetState = () => {
         setData(formalData);

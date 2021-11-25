@@ -28,6 +28,7 @@ import StatsTab from '../shared/tabs/Dataset/Stats/StatsTab';
 import { LineageTab } from '../shared/tabs/Lineage/LineageTab';
 import { EditSchemaTab } from '../shared/tabs/Dataset/Schema/EditSchemaTab';
 import { useGetMeQuery } from '../../../graphql/me.generated';
+import { AdminTab } from '../shared/tabs/Dataset/Schema/AdminTab';
 // import { useGetMeQuery } from '../../../graphql/me.generated';
 
 const MatchTag = styled(Tag)`
@@ -129,18 +130,35 @@ export class DatasetEntity implements Entity<Dataset> {
                     shouldHide: (_, _dataset: GetDatasetOwnersSpecialQuery) => {
                         const currUser = FindWhoAmI() as string;
                         const owners = _dataset?.dataset?.ownership?.owners;
-                        const ownersArray = owners?.map((x) =>
-                            x?.type === 'DATAOWNER' ? x?.owner?.urn.split(':').slice(-1) : '',
-                        );
-                        const ownersArray2 = ownersArray?.flat() ?? [];
-                        console.log(`currUser is ${currUser}`);
-                        if (ownersArray2.includes(currUser)) {
-                            console.log('return true');
+                        const ownersArray =
+                            owners
+                                ?.map((x) => (x?.type === 'DATAOWNER' ? x?.owner?.urn.split(':').slice(-1) : ''))
+                                ?.flat() ?? [];
+                        if (ownersArray.includes(currUser)) {
+                            console.log('return unhide');
                             return false;
                         }
-                        console.log('return false');
-                        return false;
+                        console.log('return hide');
+                        return true;
                     },
+                },
+                {
+                    name: 'Dataset Admin',
+                    component: AdminTab,
+                    // shouldHide: (_, _dataset: GetDatasetOwnersSpecialQuery) => {
+                    //     const currUser = FindWhoAmI() as string;
+                    //     const owners = _dataset?.dataset?.ownership?.owners;
+                    //     const ownersArray =
+                    //         owners
+                    //             ?.map((x) => (x?.type === 'DATAOWNER' ? x?.owner?.urn.split(':').slice(-1) : ''))
+                    //             ?.flat() ?? [];
+                    //     if (ownersArray.includes(currUser)) {
+                    //         console.log('return unhide');
+                    //         return false;
+                    //     }
+                    //     console.log('return hide');
+                    //     return true;
+                    // },
                 },
             ]}
             sidebarSections={[

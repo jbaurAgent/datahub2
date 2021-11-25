@@ -25,7 +25,7 @@ export const EditBrowsePathTable = () => {
         data &&
         data.browsePaths.map((x) => {
             const temp: [] = x.path;
-            return temp.join('/');
+            return `/${temp.join('/')}`;
         });
     if (data) console.log(dataPaths);
     return (

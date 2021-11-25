@@ -31,6 +31,7 @@ export const EditSchemaTableEditable = () => {
     const formalData = dataSource || [];
     const [form] = Form.useForm();
     const [data, setData] = useState(formalData);
+    const [modifiedForm, setModifiedForm] = useState(false);
     const [allrows, updateSelected] = useState({ selected: [] as any });
     const [editingKey, setEditingKey] = useState('');
     const EditableCell = ({ editing, dataIndex, title, _record, _index, children, inputType, ...restProps }) => {
@@ -115,6 +116,7 @@ export const EditSchemaTableEditable = () => {
                 setData(newData);
                 setEditingKey('');
             }
+            setModifiedForm(true);
         } catch (errInfo) {
             console.log('Validate Failed:', errInfo);
         }
@@ -215,6 +217,9 @@ export const EditSchemaTableEditable = () => {
             });
     };
     const deleteRow = () => {
+        if (allrows.selected.length > 0) {
+            setModifiedForm(true);
+        }
         const removeCandidate = allrows.selected.reverse();
         const newArr = data.filter((item) => !removeCandidate.includes(item.key));
         setData(newArr);
@@ -243,6 +248,7 @@ export const EditSchemaTableEditable = () => {
     }
 
     const shiftDownwards = () => {
+        setModifiedForm(true);
         const selected = { ...allrows };
         let currArray = [...data];
         for (let i = 0; i < selected.selected.length; i++) {
@@ -256,6 +262,7 @@ export const EditSchemaTableEditable = () => {
     };
 
     const shiftUpwards = () => {
+        setModifiedForm(true);
         const selected = { ...allrows };
         let currArray = [...data];
         for (let i = 0; i < selected.selected.length; i++) {
@@ -268,11 +275,12 @@ export const EditSchemaTableEditable = () => {
         console.log(allrows.selected);
     };
     const addRow = () => {
+        setModifiedForm(true);
         const newData = {
             fieldName: 'new Field',
             key: data.length + 1,
             datahubType: 'STRING',
-            nativeDataType: 'freetext: users can view this when they mouse over Data Type in Schema',
+            nativeDataType: 'freetext - users can view this description when they mouse over Data Type in Schema tab',
             fieldDescription: '',
             fieldTags: [''],
             fieldGlossaryTerms: [''],
@@ -286,6 +294,7 @@ export const EditSchemaTableEditable = () => {
         setData(formalData);
         allrows.selected = [] as any;
         updateSelected(allrows);
+        setModifiedForm(false);
     };
     return (
         <Form form={form} component={false}>
@@ -295,10 +304,14 @@ export const EditSchemaTableEditable = () => {
             <Button onClick={shiftUpwards}>&#x2191;</Button>
             <Button onClick={shiftDownwards}>&#x2193;</Button>
             &nbsp;
-            <Button onClick={submitData}>Confirm Changes</Button>
-            <Button onClick={resetState}>Cancel</Button>
+            <Button onClick={submitData} disabled={!modifiedForm}>
+                Submit Changes
+            </Button>
+            <Button onClick={resetState} disabled={!modifiedForm}>
+                Reset Changes
+            </Button>
             <Divider dashed orientation="left">
-                Edit Schema of Dataset Here
+                Refresh webpage with <b>F5</b> after successful submission to see updated schema.
             </Divider>
             <Table
                 components={{

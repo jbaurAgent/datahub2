@@ -3,9 +3,10 @@ import React from 'react';
 import { GetDatasetOwnersSpecialQuery } from '../../../../../../graphql/dataset.generated';
 import { useGetAuthenticatedUser } from '../../../../../useGetAuthenticatedUser';
 import { useBaseEntity } from '../../../EntityContext';
-import { EditSchemaTableEditable } from './EditSchemaTableEditable';
+import { EditBrowsePathTable } from '../BrowsePath/EditBrowsePathTable';
+import { DeleteSchemaTabv2 } from './DeleteSchemaTabv2';
 
-export const EditSchemaTab = () => {
+export const AdminTab = () => {
     const queryBase = useBaseEntity<GetDatasetOwnersSpecialQuery>()?.dataset?.ownership?.owners;
     const ownersArray = queryBase?.map((x) => (x?.type === 'DATAOWNER' ? x?.owner?.urn.split(':').slice(-1) : ''));
     const ownersArray2 = ownersArray?.flat() ?? [];
@@ -13,7 +14,8 @@ export const EditSchemaTab = () => {
     if (ownersArray2.includes(currUser)) {
         return (
             <>
-                <EditSchemaTableEditable />
+                <DeleteSchemaTabv2 />
+                <EditBrowsePathTable />
             </>
         );
     }

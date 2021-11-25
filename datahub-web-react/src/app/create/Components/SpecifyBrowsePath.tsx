@@ -17,7 +17,7 @@ export const SpecifyBrowsePath = () => {
                     name="browsepaths"
                     rules={[
                         {
-                            validator: async (_, browsepaths) => {
+                            validator: (_, browsepaths) => {
                                 if (browsepaths.length < 1) {
                                     // throw new Error('At least 1 browsepath is needed');
                                     return Promise.reject(new Error('At least 1 Browse Path is needed!'));

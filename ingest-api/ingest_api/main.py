@@ -182,12 +182,13 @@ def emit_mce_respond(metadata_record:MetadataChangeEvent, owner: str, event: str
                 status_code=400,
             )
             return
-    if not CLI_MODE:
-        generate_json_output(metadata_record, "/var/log/ingest/json")
+        
+    if CLI_MODE:
+        generate_json_output(metadata_record, "/home/admini/generated/")
     try:
         rootLogger.error('emitting')
         rootLogger.error(metadata_record)
-        emitter = DatahubRestEmitter(rest_endpoint)
+        emitter = DatahubRestEmitter(rest_endpoint, actor=owner)
         emitter.emit_mce(metadata_record)
         emitter._session.close()
     except Exception as e:
@@ -275,7 +276,7 @@ async def delete_item(item: dataset_status_params) -> None:
     This endpoint is to support soft delete of datasets. Still require a database/ES chron job to remove the entries though, it only suppresses it from search and UI
     """
     rootLogger.info("remove_dataset_request_received {}".format(item))    
-    mce = make_status_mce(dataset_name=item.urn)
+    mce = make_status_mce(dataset_name=item.dataset_name, desired_status=item.desired_state)
     emit_mce_respond(metadata_record=mce, owner= item.requestor, event = f"Status Update removed:{item.desired_state}") 
 
 @app.post("/echo")

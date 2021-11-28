@@ -101,8 +101,11 @@ async def update_browsepath(item: browsepath_params):
             urn=item.dataset_name,
             aspects=[],
     )
-    browsepath_aspect = make_browsepath_mce(dataset_urn=item.dataset_name, path = item.browsepath)
-    dataset_snapshot.append(browsepath_aspect)
+    all_paths=[]
+    for path in item.browsePaths:
+        all_paths.append(path+'dataset')
+    browsepath_aspect = make_browsepath_mce(path = all_paths)
+    dataset_snapshot.aspects.append(browsepath_aspect)
     metadata_record = MetadataChangeEvent(proposedSnapshot=dataset_snapshot)
     emit_mce_respond(
         metadata_record=metadata_record,

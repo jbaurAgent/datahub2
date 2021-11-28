@@ -12,9 +12,9 @@ export const SpecifyBrowsePath = () => {
     };
     return (
         <>
-            <Form.Item label="Specify Dataset View Location" name="browsepaths">
+            <Form.Item label="Specify Browse Location">
                 <Form.List
-                    name="browsepaths"
+                    name="browsepathList"
                     rules={[
                         {
                             validator: (_, browsepaths) => {
@@ -34,20 +34,14 @@ export const SpecifyBrowsePath = () => {
                     {(fields, { add, remove }, { errors }) => (
                         <>
                             {fields.map((field) => (
-                                <Form.Item required key={field.key} {...formItemLayout} name="browsepath">
+                                <Form.Item required key={field.key} {...formItemLayout} name="browsepaths">
                                     <Form.Item
                                         {...field}
                                         validateTrigger={['onChange', 'onBlur']}
                                         rules={[
-                                            // {
-                                            //     required: true,
-                                            //     whitespace: true,
-                                            //     pattern: new RegExp(/^\/[0-9a-zA-Z /]+/),
-                                            //     message: 'Please input a path starting with /',
-                                            // },
                                             {
                                                 required: true,
-                                                pattern: new RegExp(/^\/([0-9a-zA-Z ]+\/){1,4}$/),
+                                                pattern: new RegExp(/^\/([0-9a-zA-Z_ ]+\/){1,4}$/),
                                                 message:
                                                     'The path must start and end with a / char, and the dataset cannot be more than 4 folders deep',
                                             },

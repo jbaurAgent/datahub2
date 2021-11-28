@@ -1,26 +1,19 @@
 // import { Empty } from 'antd';
-import { Divider } from 'antd';
 import React from 'react';
 import { GetDatasetOwnersSpecialQuery } from '../../../../../../graphql/dataset.generated';
 import { useGetAuthenticatedUser } from '../../../../../useGetAuthenticatedUser';
 import { useBaseEntity } from '../../../EntityContext';
-import { EditBrowsePathTable } from '../BrowsePath/EditBrowsePathTable';
-import { DeleteSchemaTabv2 } from './DeleteSchemaTabv2';
+import { EditPropertiesTableEditable } from './EditPropertiesTableEditable';
 
-export const AdminTab = () => {
+export const EditPropertiesTab = () => {
     const queryBase = useBaseEntity<GetDatasetOwnersSpecialQuery>()?.dataset?.ownership?.owners;
     const ownersArray = queryBase?.map((x) => (x?.type === 'DATAOWNER' ? x?.owner?.urn.split(':').slice(-1) : ''));
     const ownersArray2 = ownersArray?.flat() ?? [];
-    console.log(`owners include ${ownersArray2}`);
     const currUser = useGetAuthenticatedUser()?.corpUser?.username || '-';
     if (ownersArray2.includes(currUser)) {
         return (
             <>
-                <DeleteSchemaTabv2 />
-                <Divider dashed orientation="left">
-                    Change Browsing Path for Dataset
-                </Divider>
-                <EditBrowsePathTable />
+                <EditPropertiesTableEditable />
             </>
         );
     }

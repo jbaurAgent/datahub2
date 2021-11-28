@@ -66,8 +66,7 @@ def make_institutionalmemory_mce(
 
     return mce
 
-def make_browsepath_mce(
-    dataset_urn: str,
+def make_browsepath_mce(    
     path: List[str],
 ) -> BrowsePathsClass:
     """

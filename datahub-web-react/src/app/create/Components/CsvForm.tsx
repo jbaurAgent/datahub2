@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+// import axios from 'axios';
 import { CSVReader } from 'react-papaparse';
 import { Form, Input, Space, Select, Button, message, Divider, InputNumber } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import adhocConfig from '../../../conf/Adhoc';
+// import adhocConfig from '../../../conf/Adhoc';
 import { useGetAuthenticatedUser } from '../../useGetAuthenticatedUser';
 import { CommonFields } from './CommonFields';
 
@@ -12,12 +12,12 @@ export const CsvForm = () => {
     const [hasHeader, setHasHeader] = useState('no');
 
     const user = useGetAuthenticatedUser();
-    const printSuccessMsg = (status) => {
-        message.success(`Status:${status} - Request submitted successfully`, 3).then();
-    };
-    const printErrorMsg = (error) => {
-        message.error(error, 3).then();
-    };
+    // const printSuccessMsg = (status) => {
+    //     message.success(`Status:${status} - Request submitted successfully`, 3).then();
+    // };
+    // const printErrorMsg = (error) => {
+    //     message.error(error, 3).then();
+    // };
     const [form] = Form.useForm();
     const { Option } = Select;
     const layout = {
@@ -33,12 +33,12 @@ export const CsvForm = () => {
         const finalValue = { ...values, ...fileType, dataset_owner: user?.corpUser?.username };
         console.log('Received finalValue:', finalValue);
         // POST request using axios with error handling
-        axios
-            .post(adhocConfig, finalValue)
-            .then((response) => printSuccessMsg(response.status))
-            .catch((error) => {
-                printErrorMsg(error.toString());
-            });
+        // axios
+        //     .post(adhocConfig, finalValue)
+        //     .then((response) => printSuccessMsg(response.status))
+        //     .catch((error) => {
+        //         printErrorMsg(error.toString());
+        //     });
     };
     const onReset = () => {
         form.resetFields();
@@ -78,7 +78,7 @@ export const CsvForm = () => {
                     fields: [{ field_description: '', field_type: 'string' }],
                     hasHeader: 'no',
                     headerLine: 1,
-                    browsepaths: ['/csv/'],
+                    browsepathList: ['/csv/', '/test/'],
                 }}
                 name="dynamic_form_item"
                 onFinish={onFinish}

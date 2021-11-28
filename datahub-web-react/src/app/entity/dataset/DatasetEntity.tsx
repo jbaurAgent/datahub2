@@ -29,6 +29,7 @@ import { LineageTab } from '../shared/tabs/Lineage/LineageTab';
 import { EditSchemaTab } from '../shared/tabs/Dataset/Schema/EditSchemaTab';
 import { useGetMeQuery } from '../../../graphql/me.generated';
 import { AdminTab } from '../shared/tabs/Dataset/Schema/AdminTab';
+import { EditPropertiesTab } from '../shared/tabs/Dataset/Schema/EditPropertiesTab';
 // import { useGetMeQuery } from '../../../graphql/me.generated';
 
 const MatchTag = styled(Tag)`
@@ -143,22 +144,40 @@ export class DatasetEntity implements Entity<Dataset> {
                     },
                 },
                 {
+                    name: 'Edit Properties',
+                    component: EditPropertiesTab,
+                    shouldHide: (_, _dataset: GetDatasetOwnersSpecialQuery) => {
+                        const currUser = FindWhoAmI() as string;
+                        const owners = _dataset?.dataset?.ownership?.owners;
+                        const ownersArray =
+                            owners
+                                ?.map((x) => (x?.type === 'DATAOWNER' ? x?.owner?.urn.split(':').slice(-1) : ''))
+                                ?.flat() ?? [];
+                        if (ownersArray.includes(currUser)) {
+                            console.log('return unhide');
+                            return false;
+                        }
+                        console.log('return hide');
+                        return true;
+                    },
+                },
+                {
                     name: 'Dataset Admin',
                     component: AdminTab,
-                    // shouldHide: (_, _dataset: GetDatasetOwnersSpecialQuery) => {
-                    //     const currUser = FindWhoAmI() as string;
-                    //     const owners = _dataset?.dataset?.ownership?.owners;
-                    //     const ownersArray =
-                    //         owners
-                    //             ?.map((x) => (x?.type === 'DATAOWNER' ? x?.owner?.urn.split(':').slice(-1) : ''))
-                    //             ?.flat() ?? [];
-                    //     if (ownersArray.includes(currUser)) {
-                    //         console.log('return unhide');
-                    //         return false;
-                    //     }
-                    //     console.log('return hide');
-                    //     return true;
-                    // },
+                    shouldHide: (_, _dataset: GetDatasetOwnersSpecialQuery) => {
+                        const currUser = FindWhoAmI() as string;
+                        const owners = _dataset?.dataset?.ownership?.owners;
+                        const ownersArray =
+                            owners
+                                ?.map((x) => (x?.type === 'DATAOWNER' ? x?.owner?.urn.split(':').slice(-1) : ''))
+                                ?.flat() ?? [];
+                        if (ownersArray.includes(currUser)) {
+                            console.log('return unhide');
+                            return false;
+                        }
+                        console.log('return hide');
+                        return true;
+                    },
                 },
             ]}
             sidebarSections={[

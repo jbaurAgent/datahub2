@@ -74,7 +74,7 @@ class dataset_status_params(BaseModel):
 class browsepath_params(BaseModel):
     dataset_name: str
     requestor: str
-    browsepath: List[str]
+    browsePaths: List[str]
 
 class schema_params(BaseModel):
     dataset_name: str

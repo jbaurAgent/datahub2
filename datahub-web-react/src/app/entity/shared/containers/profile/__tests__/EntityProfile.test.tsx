@@ -23,7 +23,7 @@ import { SidebarTagsSection } from '../sidebar/SidebarTagsSection';
 
 describe('EntityProfile', () => {
     it('renders dataset page', async () => {
-        const { getByText } = render(
+        render(
             <MockedProvider mocks={mocks} addTypename={false}>
                 <TestPageContainer initialEntries={['/dataset/urn:li:dataset:3']}>
                     <EntityProfile
@@ -95,7 +95,7 @@ describe('EntityProfile', () => {
     });
 
     it('renders tab content', async () => {
-        const { getByText } = render(
+        render(
             <MockedProvider mocks={mocks} addTypename={false}>
                 <TestPageContainer initialEntries={['/dataset/urn:li:dataset:3']}>
                     <EntityProfile
@@ -250,7 +250,7 @@ describe('EntityProfile', () => {
     });
 
     it('renders sidebar content', async () => {
-        const { getByText } = render(
+        render(
             <MockedProvider mocks={mocks} addTypename={false}>
                 <TestPageContainer initialEntries={['/dataset/urn:li:dataset:3']}>
                     <EntityProfile

@@ -15,6 +15,8 @@ export const BannerSplash = () => {
             const callAPI = async () => {
                 await axios.get(url).then((res) => {
                     setData(res.data);
+                }).catch((error) => {
+                    console.error(error.toString());
                 }); // todo: can we have error show a default msg
             };
             callAPI();

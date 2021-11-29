@@ -1,8 +1,8 @@
 // import { Empty } from 'antd';
 import React, { useState } from 'react';
-import { Button, Divider, Form, Input, Table, Typography } from 'antd';
+import { Button, Divider, Form, Input, message, Table, Typography } from 'antd';
 import PropTypes from 'prop-types';
-// import axios from 'axios';
+import axios from 'axios';
 import { useBaseEntity } from '../../../EntityContext';
 import { GetDatasetQuery } from '../../../../../../graphql/dataset.generated';
 import { useGetAuthenticatedUser } from '../../../../../useGetAuthenticatedUser';
@@ -12,6 +12,7 @@ import { useGetAuthenticatedUser } from '../../../../../useGetAuthenticatedUser'
 
 export const EditPropertiesTableEditable = () => {
     const queryFields = useBaseEntity<GetDatasetQuery>()?.dataset?.properties;
+    const datasetDescription = useBaseEntity<GetDatasetQuery>()?.dataset?.description;
     const urn = useBaseEntity<GetDatasetQuery>()?.dataset?.urn;
     const currUser = useGetAuthenticatedUser()?.corpUser?.urn || '-';
     const dataSource = queryFields?.map((x, ind) => {
@@ -172,23 +173,28 @@ export const EditPropertiesTableEditable = () => {
             }),
         };
     });
-    // const printSuccessMsg = (status) => {
-    //     message.success(`Status:${status} - Request submitted successfully`, 3).then();
-    // };
-    // const printErrorMsg = (error) => {
-    //     message.error(error, 3).then();
-    // };
+    const printSuccessMsg = (status) => {
+        message.success(`Status:${status} - Request submitted successfully`, 3).then();
+    };
+    const printErrorMsg = (error) => {
+        message.error(error, 3).then();
+    };
 
     const submitData = () => {
         const dataClone = data.map((x) => x);
-        const dataSubmission = { dataset_name: urn, requestor: currUser, dataset_fields: dataClone };
+        const dataSubmission = {
+            dataset_name: urn,
+            requestor: currUser,
+            description: datasetDescription,
+            properties: dataClone,
+        };
         console.log(dataSubmission);
-        // axios
-        //     .post('http://localhost:8001/update_schema', dataSubmission)
-        //     .then((response) => printSuccessMsg(response.status))
-        //     .catch((error) => {
-        //         printErrorMsg(error.toString());
-        //     });
+        axios
+            .post('http://localhost:8001/update_properties', dataSubmission)
+            .then((response) => printSuccessMsg(response.status))
+            .catch((error) => {
+                printErrorMsg(error.toString());
+            });
     };
     const deleteRow = () => {
         if (allrows.selected.length > 0) {

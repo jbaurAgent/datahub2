@@ -158,14 +158,18 @@ async def update_prop(item: prop_params):
             urn=datasetName,
             aspects=[],
     )
-    description = item.get("description", "")
-    properties = item.get("properties", {})
+    description = item.description
+    properties = item.properties
+    all_properties={}
+    for prop in properties:
+        if 'propertyKey' and 'propertyValue' in prop:
+            all_properties[prop.get('propertyKey')] = prop.get('propertyValue')
     property_aspect = make_dataset_description_mce(
         dataset_name=datasetName,
         description=description,
-        customProperties=properties,
+        customProperties=all_properties,
     )
-    dataset_snapshot.append(property_aspect)
+    dataset_snapshot.aspects.append(property_aspect)
     metadata_record = MetadataChangeEvent(proposedSnapshot=dataset_snapshot)
     emit_mce_respond(
         metadata_record=metadata_record,
@@ -222,7 +226,7 @@ async def create_item(item: create_dataset_params) -> None:
     item.dataset_name = "{}_{}".format(item.dataset_name, str(get_sys_time()))
     datasetName = make_dataset_urn(item.dataset_type, item.dataset_name)
     platformName = make_platform(item.dataset_type)
-    browsePath = "/{}/{}".format(item.dataset_type, item.dataset_name)
+    browsepaths = [path+'dataset' for path in item.browsepathList]    
         
     requestor = make_user_urn(item.dataset_owner)
     headerRowNum = (
@@ -252,7 +256,7 @@ async def create_item(item: create_dataset_params) -> None:
     )
 
     dataset_snapshot.aspects.append(make_ownership_mce(actor=requestor, dataset_urn=datasetName))
-    dataset_snapshot.aspects.append(make_browsepath_mce(dataset_urn=datasetName, path=[browsePath]))
+    dataset_snapshot.aspects.append(make_browsepath_mce(path=browsepaths))
     field_params = []
     for existing_field in item.fields:
         current_field = {}

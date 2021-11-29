@@ -5,7 +5,7 @@ import { GetDatasetOwnersSpecialQuery } from '../../../../../../graphql/dataset.
 import { useGetAuthenticatedUser } from '../../../../../useGetAuthenticatedUser';
 import { useBaseEntity } from '../../../EntityContext';
 import { EditBrowsePathTable } from '../BrowsePath/EditBrowsePathTable';
-import { DeleteSchemaTabv2 } from './DeleteSchemaTabv2';
+import { DeleteSchemaTabv2 } from '../Delete/DeleteSchemaTabv2';
 
 export const AdminTab = () => {
     const queryBase = useBaseEntity<GetDatasetOwnersSpecialQuery>()?.dataset?.ownership?.owners;

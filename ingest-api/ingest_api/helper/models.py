@@ -29,6 +29,7 @@ class create_dataset_params(BaseModel):
     dataset_origin: str = ""
     hasHeader: str = "n/a"
     headerLine: int = 1
+    browsepathList: List[str]
 
     class Config:
         schema_extra = {
@@ -41,6 +42,7 @@ class create_dataset_params(BaseModel):
                 "dataset_origin": "this dataset found came from... ie internet",
                 "hasHeader": "no",
                 "headerLine": 1,
+                "browsepathList": ["/user/", "/csv/"],
                 "dataset_fields": [
                     {
                         "field_name": "columnA",
@@ -85,7 +87,7 @@ class prop_params(BaseModel):
     dataset_name: str
     requestor: str
     description: str
-    # properties: 
+    properties: List[Dict]
 
 class echo_param(BaseModel):
     user_input: Any

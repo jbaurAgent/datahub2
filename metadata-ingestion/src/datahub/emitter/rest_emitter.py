@@ -76,10 +76,7 @@ class DatahubRestEmitter:
             }
         )
         if actor:
-            self._session.headers.update({
-                "X-DataHub-Actor": actor
-                }
-            )
+            self._session.headers.update({"X-DataHub-Actor": actor})
         if token:
             self._session.headers.update({"Authorization": f"Bearer {token}"})
 

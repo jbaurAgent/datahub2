@@ -360,6 +360,7 @@ class CDH_HiveSource(Source):
             for partition_ind, item in enumerate(table_info_raw):
                 if item[0].strip() == "# Partition Information":
                     break
+            partition_ind = min(partition_ind, len(table_schema) + 2)
             table_info = table_info_raw[partition_ind + 2 :]
 
             properties = {}

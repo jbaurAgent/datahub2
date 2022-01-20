@@ -71,7 +71,7 @@ app = FastAPI(
     description="For generating datasets",
     version="0.0.2",
 )
-origins = ["http://localhost:9002", "http://172.19.0.1:9002", "http://localhost:3000"]
+origins = ["http://localhost:9002", "http://172.19.0.1:9002", "http://localhost:3000", "http://172.19.0.1:3000"]
 if environ.get("ACCEPT_ORIGINS") is not None:
     new_origin = environ["ACCEPT_ORIGINS"]
     origins.append(new_origin)

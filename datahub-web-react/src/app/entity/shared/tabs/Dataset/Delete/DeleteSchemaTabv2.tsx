@@ -103,7 +103,6 @@ export const DeleteSchemaTabv2 = () => {
                         <Button type="primary" key="console" onClick={showPopconfirm}>
                             {buttonMsg}
                         </Button>
-                        ,
                     </Popconfirm>,
                 ]}
             />

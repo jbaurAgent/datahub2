@@ -92,6 +92,7 @@ export default function AddTagTermModal({
                     input: {
                         types: [type],
                         query,
+                        limit: 25,
                     },
                 },
             });
@@ -150,6 +151,7 @@ export default function AddTagTermModal({
 
         let urnToAdd = '';
         let input = {};
+        let actionType = EntityActionType.UpdateSchemaTags;
         if (selectedType === EntityType.Tag) {
             urnToAdd = `urn:li:tag:${selectedName}`;
             input = {
@@ -158,6 +160,11 @@ export default function AddTagTermModal({
                 subResource: entitySubresource,
                 subResourceType: entitySubresource ? SubResourceType.DatasetField : null,
             };
+            if (entitySubresource) {
+                actionType = EntityActionType.UpdateSchemaTags;
+            } else {
+                actionType = EntityActionType.UpdateTags;
+            }
         }
         if (selectedType === EntityType.GlossaryTerm) {
             urnToAdd = `urn:li:glossaryTerm:${selectedName}`;
@@ -167,14 +174,20 @@ export default function AddTagTermModal({
                 subResource: entitySubresource,
                 subResourceType: entitySubresource ? SubResourceType.DatasetField : null,
             };
+            if (entitySubresource) {
+                actionType = EntityActionType.UpdateSchemaTerms;
+            } else {
+                actionType = EntityActionType.UpdateTerms;
+            }
         }
 
         analytics.event({
             type: EventType.EntityActionEvent,
-            actionType: EntityActionType.UpdateTags,
             entityType,
             entityUrn,
+            actionType,
         });
+
         mutation({
             variables: {
                 input,

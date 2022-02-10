@@ -125,6 +125,7 @@ iso8601==1.0.2
 isodate==0.6.1
 isort==5.10.1
 itsdangerous==1.1.0
+jaydebeapi
 jedi==0.17.2
 Jinja2==3.0.3
 jmespath==0.10.0

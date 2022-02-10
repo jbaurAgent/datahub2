@@ -139,6 +139,7 @@ jupyter-core==4.9.1
 jupyterlab-pygments==0.1.2
 jupyterlab-widgets==1.0.2
 keyring==23.4.1
+krbcontext>=0.10
 lazy-object-proxy==1.7.1
 lockfile==0.12.2
 looker-sdk==21.6.0

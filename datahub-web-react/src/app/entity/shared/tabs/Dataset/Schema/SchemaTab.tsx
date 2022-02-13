@@ -1,4 +1,4 @@
-import { Empty } from 'antd';
+import { Button, Empty } from 'antd';
 import React, { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { GetDatasetQuery } from '../../../../../../graphql/dataset.generated';
@@ -20,7 +20,7 @@ const NoSchema = styled(Empty)`
 export const SchemaTab = () => {
     const { entityData } = useEntityData();
     const baseEntity = useBaseEntity<GetDatasetQuery>();
-
+    const [buttonState, setButtonState] = useState<boolean>(false);
     const { schemaMetadata, editableSchemaMetadata } = entityData || {};
     const usageStats = baseEntity?.dataset?.usageStats;
 
@@ -59,6 +59,15 @@ export const SchemaTab = () => {
 
     return (
         <div>
+            <Button
+                onClick={() => {
+                    setButtonState(!buttonState);
+                    // console.log(`button is ${buttonState}`);
+                }}
+                key={buttonState.toString()}
+            >
+                {buttonState ? `Collapse Expanded Rows` : `Expand Any Nested Rows`}
+            </Button>
             <SchemaHeader
                 editMode
                 showRaw={showRaw}
@@ -79,6 +88,7 @@ export const SchemaTab = () => {
                         editMode
                         editableSchemaMetadata={editableSchemaMetadata}
                         usageStats={usageStats}
+                        expand={buttonState}
                     />
                 </>
             ) : (

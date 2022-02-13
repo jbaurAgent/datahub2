@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ColumnsType } from 'antd/es/table';
 import styled from 'styled-components';
 import {} from 'antd';
@@ -41,6 +41,7 @@ export type Props = {
     editableSchemaMetadata?: EditableSchemaMetadata | null;
     editMode?: boolean;
     usageStats?: UsageQueryResult | null;
+    expand?: boolean;
 };
 export default function SchemaTable({
     rows,
@@ -48,13 +49,16 @@ export default function SchemaTable({
     editableSchemaMetadata,
     usageStats,
     editMode = true,
+    expand = false,
 }: Props): JSX.Element {
     const hasUsageStats = useMemo(() => (usageStats?.aggregations?.fields?.length || 0) > 0, [usageStats]);
-
     const [tagHoveredIndex, setTagHoveredIndex] = useState<string | undefined>(undefined);
     const [selectedFkFieldPath, setSelectedFkFieldPath] =
         useState<null | { fieldPath: string; constraint?: ForeignKeyConstraint | null }>(null);
-
+    const [expandCell, setExpandCell] = useState<boolean>(expand);
+    useEffect(() => {
+        setExpandCell(expand);
+    }, [expand]);
     const descriptionRender = useDescriptionRenderer(editableSchemaMetadata);
     const usageStatsRenderer = useUsageStatsRenderer(usageStats);
     const tagRenderer = useTagsAndTermsRenderer(editableSchemaMetadata, tagHoveredIndex, setTagHoveredIndex, {
@@ -132,6 +136,7 @@ export default function SchemaTable({
         <FkContext.Provider value={selectedFkFieldPath}>
             <TableContainer>
                 <StyledTable
+                    key={expandCell.toString()}
                     rowClassName={(record) =>
                         record.fieldPath === selectedFkFieldPath?.fieldPath ? 'open-fk-row' : ''
                     }
@@ -144,7 +149,7 @@ export default function SchemaTable({
                         },
                     }}
                     expandable={{
-                        defaultExpandAllRows: false,
+                        defaultExpandAllRows: expandCell,
                         expandRowByClick: false,
                         expandIcon: ExpandIcon,
                         indentSize: 0,

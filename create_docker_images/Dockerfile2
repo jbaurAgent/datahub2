@@ -1,0 +1,2 @@
+FROM adoptopenjdk/openjdk8:alpine-slim as prod-build
+RUN apk --no-cache add openjdk8-jre perl

@@ -2,6 +2,9 @@ package auth.sso.oidc;
 
 import client.AuthServiceClient;
 import com.datahub.authentication.Authentication;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linkedin.common.AuditStamp;
 import com.linkedin.common.CorpGroupUrnArray;
 import com.linkedin.common.CorpuserUrnArray;
@@ -46,6 +49,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.pac4j.core.authorization.generator.AuthorizationGenerator;
 import org.pac4j.core.config.Config;
 import org.pac4j.core.engine.DefaultCallbackLogic;
 import org.pac4j.core.http.adapter.HttpActionAdapter;
@@ -112,9 +116,25 @@ public class OidcCallbackLogic extends DefaultCallbackLogic<Result, PlayWebConte
     log.debug("Beginning OIDC Callback Handling...");
 
     if (profileManager.isAuthenticated()) {
+
       // If authenticated, the user should have a profile.
       final CommonProfile profile = profileManager.get(true).get();
       log.debug(String.format("Found authenticated user with profile %s", profile.getAttributes().toString()));
+
+      // extract resource Access
+      final String resourceAccess =  extractResourceAccess(profile);
+      ObjectMapper objectMapper = new ObjectMapper();
+      try {
+        JsonNode jsonNode = objectMapper.readTree(resourceAccess);
+        // to refactor - not to hardcode the resource access and roles to check
+        String role = jsonNode.get("dep-datacatalogue").get("roles").asText();
+        log.debug(String.format("Found checking role of users for dep-datacatalogue resource %s", role);
+
+        if (!role.contains("access"))
+          return internalServerError("Failed to authenticate current user. Cannot find valid identity provider profile in session.");
+      } catch (JsonProcessingException e) {
+        e.printStackTrace();
+      }
 
       // Extract the User name required to log into DataHub.
       final String userName = extractUserNameOrThrow(oidcConfigs, profile);
@@ -160,6 +180,23 @@ public class OidcCallbackLogic extends DefaultCallbackLogic<Result, PlayWebConte
       return result.withCookies(createActorCookie(corpUserUrn.toString(), oidcConfigs.getSessionTtlInHours()));
     }
     return internalServerError("Failed to authenticate current user. Cannot find valid identity provider profile in session.");
+  }
+
+  private String extractResourceAccess(final CommonProfile profile) {
+    // Ensure that the attribute exists (was returned by keycloak)
+    // to add/refactor in oidcConfigs later
+    if (!profile.containsAttribute("resource_access")) {
+      throw new RuntimeException(
+              String.format(
+                      "Failed to resolve resource_access attribute from profile provided by Identity Provider. Missing attribute. Attribute: '%s', Profile: %s",
+                      "resource_access",
+                      profile.getAttributes().toString()
+              ));
+    }
+
+    final String resourceAccess = (String) profile.getAttribute("resource_access");
+
+    return resourceAccess;
   }
 
   private String extractUserNameOrThrow(final OidcConfigs oidcConfigs, final CommonProfile profile) {

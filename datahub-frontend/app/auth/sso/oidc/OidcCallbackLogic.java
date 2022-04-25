@@ -123,16 +123,20 @@ public class OidcCallbackLogic extends DefaultCallbackLogic<Result, PlayWebConte
       final CommonProfile profile = profileManager.get(true).get();
       log.debug(String.format("Checking the attributes of the profile: %s", profile.getAttributes().toString()));
 
-      // todo - a flag to determine if we want to check for client roles for the user
-      // extract client roles of this user from resource_access attribute
-      Optional<List<String>> roleLists = extractClientRoles(oidcConfigs, profile);
+      // determine if we want to extract client roles through customParamResource
+      // using client-id and client_role "access"
+      if (oidcConfigs.getCustomParamResource().isPresent()
+              && oidcConfigs.getCustomParamResource().get().equals("access")) {
 
-      // check if it is populated
-      if(roleLists.isPresent()){
-        // check for access role
-        if(!roleLists.get().contains("access"))
-          return internalServerError(String.format("Failed to pass authorization-with-keycloak step. " +
-                  "Please ensure that you have the required role to access this app"));
+        Optional<List<String>> roleLists = extractClientRoles(oidcConfigs, profile);
+        // check if it is populated
+        if(roleLists.isPresent()){
+          // check for access role
+          if(!roleLists.get().contains(oidcConfigs.getCustomParamResource().get()))
+            return internalServerError(String.format("Failed to pass authorization-with-keycloak step. " +
+                    "Please ensure that you have the required role to access this app"));
+        }
+
       }
 
       // Extract the User name required to log into DataHub.
@@ -191,7 +195,7 @@ public class OidcCallbackLogic extends DefaultCallbackLogic<Result, PlayWebConte
         JsonNode jsonNode = objectMapper.readTree(resourceAccessJsonStr);
         JsonNode roleArray = jsonNode.get(oidcConfigs.getClientId()).get("roles");
         //iterate through the roles for this client
-        Optional.of(StreamSupport.stream(roleArray.spliterator(), true)
+        return Optional.of(StreamSupport.stream(roleArray.spliterator(), true)
                 .map(sObj -> sObj.asText())
                 .collect(Collectors.toList()));
 

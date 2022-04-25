@@ -48,6 +48,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 import lombok.extern.slf4j.Slf4j;
 import org.pac4j.core.authorization.generator.AuthorizationGenerator;
 import org.pac4j.core.config.Config;
@@ -119,35 +121,18 @@ public class OidcCallbackLogic extends DefaultCallbackLogic<Result, PlayWebConte
 
       // If authenticated, the user should have a profile.
       final CommonProfile profile = profileManager.get(true).get();
-      log.info(String.format("Found authenticated user with profile %s", profile.getAttributes().toString()));
+      log.debug(String.format("Checking the attributes of the profile: %s", profile.getAttributes().toString()));
 
-      // extract resource Access
-      final String resourceAccess =  extractResourceAccess(profile);
-      if (resourceAccess.equals("")){
-        log.info(String.format("log out profile manager"));
-        profileManager.logout();
-      } else {
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-          JsonNode jsonNode = objectMapper.readTree(resourceAccess);
-          // to refactor - not to hardcode the resource access and roles to check
-          JsonNode roles = jsonNode.get("dep-datacatalogue").get("roles");
-          boolean isAuthorized = false;
-          if (roles.isArray()) {
-            for (final JsonNode role : roles) {
-              log.info(String.format("Print role:  %s", role.asText()));
-              if (role.asText().equals("access"))
-                isAuthorized = true;
-            }
-          }
+      // todo - a flag to determine if we want to check for client roles for the user
+      // extract client roles of this user from resource_access attribute
+      Optional<List<String>> roleLists = extractClientRoles(oidcConfigs, profile);
 
-          if (!isAuthorized){
-            log.info(String.format("log out profile manager"));
-            profileManager.logout();
-          }
-        } catch (JsonProcessingException e) {
-          e.printStackTrace();
-        }
+      // check if it is populated
+      if(roleLists.isPresent()){
+        // check for access role
+        if(!roleLists.get().contains("access"))
+          return internalServerError(String.format("Failed to pass authorization-with-keycloak step. " +
+                  "Please ensure that you have the required role to access this app"));
       }
 
       // Extract the User name required to log into DataHub.
@@ -196,16 +181,26 @@ public class OidcCallbackLogic extends DefaultCallbackLogic<Result, PlayWebConte
     return internalServerError("Failed to authenticate current user. Cannot find valid identity provider profile in session.");
   }
 
-  private String extractResourceAccess(final CommonProfile profile) {
+  private Optional<List<String>> extractClientRoles(final OidcConfigs oidcConfigs, final CommonProfile profile) {
     // Ensure that the attribute exists (was returned by keycloak)
-    // to add/refactor in oidcConfigs later
-    String resourceAccess = "";
     if (profile.containsAttribute("resource_access")) {
-      resourceAccess = profile.getAttribute("resource_access").toString();
-      log.info(String.format("Found extracting resourceAccess %s", resourceAccess));
+      final String resourceAccessJsonStr = profile.getAttribute("resource_access").toString();
+      log.debug(String.format("Examining resource_access attribute: %s", resourceAccessJsonStr));
+      ObjectMapper objectMapper = new ObjectMapper();
+      try {
+        JsonNode jsonNode = objectMapper.readTree(resourceAccessJsonStr);
+        JsonNode roleArray = jsonNode.get(oidcConfigs.getClientId()).get("roles");
+        //iterate through the roles for this client
+        Optional.of(StreamSupport.stream(roleArray.spliterator(), true)
+                .map(sObj -> sObj.asText())
+                .collect(Collectors.toList()));
+
+      } catch (JsonProcessingException e) {
+        log.error("Failed to extract roles.", e);
+      }
     }
 
-    return resourceAccess;
+    return Optional.empty();
   }
 
   private String extractUserNameOrThrow(final OidcConfigs oidcConfigs, final CommonProfile profile) {

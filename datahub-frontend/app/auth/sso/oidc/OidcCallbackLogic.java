@@ -121,7 +121,7 @@ public class OidcCallbackLogic extends DefaultCallbackLogic<Result, PlayWebConte
 
       // If authenticated, the user should have a profile.
       final CommonProfile profile = profileManager.get(true).get();
-      log.info(String.format("Checking the attributes of the profile: %s", profile.getAttributes().toString()));
+      log.debug(String.format("Checking the attributes of the profile: %s", profile.getAttributes().toString()));
 
       // determine if we want to extract client roles through customParamResource
       // using client-id and client_role "access"
@@ -187,7 +187,7 @@ public class OidcCallbackLogic extends DefaultCallbackLogic<Result, PlayWebConte
     // Ensure that the attribute exists (was returned by keycloak)
     if (profile.containsAttribute("resource_access")) {
       final String resourceAccessJsonStr = profile.getAttribute("resource_access").toString();
-      log.info(String.format("Examining resource_access attribute: %s", resourceAccessJsonStr));
+      log.debug(String.format("Examining resource_access attribute: %s", resourceAccessJsonStr));
       ObjectMapper objectMapper = new ObjectMapper();
       try {
         JsonNode jsonNode = objectMapper.readTree(resourceAccessJsonStr);
@@ -198,7 +198,7 @@ public class OidcCallbackLogic extends DefaultCallbackLogic<Result, PlayWebConte
                 .collect(Collectors.toList()));
 
       } catch (JsonProcessingException e) {
-        log.info("Failed to extract roles.", e);
+        log.error("Failed to extract roles.", e);
       }
     }
 

@@ -121,22 +121,20 @@ public class OidcCallbackLogic extends DefaultCallbackLogic<Result, PlayWebConte
 
       // If authenticated, the user should have a profile.
       final CommonProfile profile = profileManager.get(true).get();
-      log.debug(String.format("Checking the attributes of the profile: %s", profile.getAttributes().toString()));
+      log.info(String.format("Checking the attributes of the profile: %s", profile.getAttributes().toString()));
 
       // determine if we want to extract client roles through customParamResource
       // using client-id and client_role "access"
-      if (oidcConfigs.getCustomParamResource().isPresent()
-              && oidcConfigs.getCustomParamResource().get().equals("access")) {
-
-        Optional<List<String>> roleLists = extractClientRoles(oidcConfigs, profile);
-        // check if it is populated
-        if(roleLists.isPresent()){
-          // check for access role
-          if(!roleLists.get().contains(oidcConfigs.getCustomParamResource().get()))
-            return internalServerError(String.format("Failed to pass authorization-with-keycloak step. " +
-                    "Please ensure that you have the required role to access this app"));
-        }
-
+      Optional<List<String>> roleLists = extractClientRoles(oidcConfigs, profile);
+      // check if it is populated
+      if(roleLists.isPresent()){
+        // check for access role
+        if(!roleLists.get().contains("access"))
+          return internalServerError(String.format("Failed to pass authorization-with-keycloak step. " +
+                  "Please ensure that you have the required role to access this app"));
+      } else {
+        return internalServerError(String.format("Failed to pass authorization-with-keycloak step. " +
+                "Please ensure that you have the required role to access this app"));
       }
 
       // Extract the User name required to log into DataHub.
@@ -189,7 +187,7 @@ public class OidcCallbackLogic extends DefaultCallbackLogic<Result, PlayWebConte
     // Ensure that the attribute exists (was returned by keycloak)
     if (profile.containsAttribute("resource_access")) {
       final String resourceAccessJsonStr = profile.getAttribute("resource_access").toString();
-      log.debug(String.format("Examining resource_access attribute: %s", resourceAccessJsonStr));
+      log.info(String.format("Examining resource_access attribute: %s", resourceAccessJsonStr));
       ObjectMapper objectMapper = new ObjectMapper();
       try {
         JsonNode jsonNode = objectMapper.readTree(resourceAccessJsonStr);
@@ -200,7 +198,7 @@ public class OidcCallbackLogic extends DefaultCallbackLogic<Result, PlayWebConte
                 .collect(Collectors.toList()));
 
       } catch (JsonProcessingException e) {
-        log.error("Failed to extract roles.", e);
+        log.info("Failed to extract roles.", e);
       }
     }
 

@@ -123,20 +123,6 @@ public class OidcCallbackLogic extends DefaultCallbackLogic<Result, PlayWebConte
       final CommonProfile profile = profileManager.get(true).get();
       log.debug(String.format("Checking the attributes of the profile: %s", profile.getAttributes().toString()));
 
-      // determine if we want to extract client roles through customParamResource
-      // using client-id and client_role "access"
-      Optional<List<String>> roleLists = extractClientRoles(oidcConfigs, profile);
-      // check if it is populated
-      if(roleLists.isPresent()){
-        // check for access role
-        if(!roleLists.get().contains("access"))
-          return internalServerError(String.format("Failed to pass authorization-with-keycloak step. " +
-                  "Please ensure that you have the required role to access this app"));
-      } else {
-        return internalServerError(String.format("Failed to pass authorization-with-keycloak step. " +
-                "Please ensure that you have the required role to access this app"));
-      }
-
       // Extract the User name required to log into DataHub.
       final String userName = extractUserNameOrThrow(oidcConfigs, profile);
       final CorpuserUrn corpUserUrn = new CorpuserUrn(userName);
@@ -161,6 +147,23 @@ public class OidcCallbackLogic extends DefaultCallbackLogic<Result, PlayWebConte
           log.debug("Pre Provisioning is required. Beginning validation of extracted user...");
           verifyPreProvisionedUser(corpUserUrn);
         }
+
+        // determine if we want to extract client roles through customParamResource
+        // using client-id and client_role "access"
+        if (oidcConfigs.getResourceClientRole().isPresent()){
+          Optional<List<String>> roleLists = extractClientRoles(oidcConfigs, profile);
+          // check if it is populated
+          if(roleLists.isPresent()){
+            // check for access role
+            if(!roleLists.get().contains(oidcConfigs.getResourceClientRole().get()))
+              return internalServerError(String.format("Failed to pass authorization-with-keycloak step. " +
+                      "Please ensure that you have the required role to access this app"));
+          } else {
+            return internalServerError(String.format("Failed to pass authorization-with-keycloak step. " +
+                    "Please ensure that you have the required role to access this app"));
+          }
+        }
+
         // Update user status to active on login.
         // If we want to prevent certain users from logging in, here's where we'll want to do it.
         setUserStatus(corpUserUrn, new CorpUserStatus()

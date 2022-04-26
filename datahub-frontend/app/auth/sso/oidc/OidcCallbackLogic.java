@@ -157,10 +157,12 @@ public class OidcCallbackLogic extends DefaultCallbackLogic<Result, PlayWebConte
             // check for access role
             if(!roleLists.get().equals(oidcConfigs.getResourceClientRole().get()))
               return internalServerError(String.format("Failed to pass authorization-with-keycloak step. " +
-                      "Please ensure that you have the required role to access this app"));
+                      "Please ensure that you have the required role to access this app: %s:%s",
+                      oidcConfigs.getClientId(),oidcConfigs.getResourceClientRole().get()));
           } else {
             return internalServerError(String.format("Failed to pass authorization-with-keycloak step. " +
-                    "Please ensure that you have the required role to access this app"));
+                            "Please ensure that you have the required role to access this app: %s:%s",
+                    oidcConfigs.getClientId(),oidcConfigs.getResourceClientRole().get()));
           }
         }
 

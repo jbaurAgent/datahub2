@@ -8,7 +8,7 @@ from os import environ
 import time
 from logging.handlers import TimedRotatingFileHandler
 import requests
-import uvicorn
+from urllib.parse import urljoin
 
 from datahub.emitter.mcp import MetadataChangeProposalWrapper
 from datahub.emitter.rest_emitter import DatahubRestEmitter
@@ -25,7 +25,7 @@ from starlette_exporter import PrometheusMiddleware, handle_metrics
 
 from ingest_api.helper.mce_convenience import *
 from ingest_api.helper.models import *
-from ingest_api.helper.security import authenticate_action, verify_token
+from ingest_api.helper.security import authenticate_action, verify_token, query_platform_rights_adhoc_create
 
 CLI_MODE = False if environ.get("RUNNING_IN_DOCKER") else True
 
@@ -69,6 +69,7 @@ else:
     log_path = f"{os.getcwd()}/logs/ingest_api.log"
     log_path_simple = f"{os.getcwd()}/logs/ingest_api.simple.log"
 
+datahub_url = os.environ["DATAHUB_FRONTEND"]
 rest_endpoint = os.environ["DATAHUB_BACKEND"]
 api_emitting_port = 8001
 # logging - 1 console logger showing info-level+, and 2 logger logging INFO+ AND DEBUG+ levels
@@ -479,7 +480,8 @@ async def create_item(item: create_dataset_params) -> None:
     token = item.user_token
     user = item.dataset_owner
     requestor = make_user_urn(item.dataset_owner)
-    if verify_token(token, user):
+    query_endpoint = urljoin(datahub_url, "/api/graphql")
+    if verify_token(token, user) and query_platform_rights_adhoc_create(token, query_endpoint):
         item.dataset_name = "{}_{}".format(item.dataset_name, str(get_sys_time()))
         datasetName = make_dataset_urn(item.dataset_type, item.dataset_name)
         platformName = make_platform(item.dataset_type)

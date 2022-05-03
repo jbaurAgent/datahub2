@@ -167,3 +167,29 @@ def query_users_groups(token: str, query_endpoint: str):
         return groups_list
     log.debug(f"group membership list is empty")
     return []
+
+def query_platform_rights_adhoc_create(token: str, query_endpoint: str):
+    headers = {}
+    headers["Authorization"] = f"Bearer {token}"
+    headers["Content-Type"] = "application/json"
+    query = """
+        query userRights{
+            me{
+                platformPrivileges{
+                    createAdhocDatasets
+                }
+            }
+        }
+    """    
+    resp = requests.post(
+        query_endpoint, headers=headers, json={"query": query }
+    )
+    log.debug(f"group membership resp.status_code is {resp.status_code}")
+    if resp.status_code != 200:
+        return False
+    data_received = json.loads(resp.text)
+    if data_received["data"]["me"]["platformPrivileges"]["createAdhocDatasets"] == True:
+        log.debug(f"create_dataset rights is True")
+        return True
+    log.debug(f"create_dataset rights is False")
+    return False

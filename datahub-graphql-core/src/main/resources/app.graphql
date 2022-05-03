@@ -63,6 +63,11 @@ type PlatformPrivileges {
   manageIngestion: Boolean!
 
   """
+  Whether the user is create adhoc datasets using Ingest-API
+  """
+  createAdhocDatasets: Boolean!
+
+  """
   Whether the user is able to manage UI-based secrets
   """
   manageSecrets: Boolean!
@@ -97,6 +102,11 @@ type AppConfig {
   Configurations related to UI-based ingestion
   """
   managedIngestionConfig: ManagedIngestionConfig!
+
+  """
+  Configurations related to Adhoc Creation
+  """
+  createAdhocConfig: CreateAdhocConfig!
 
   """
   Configurations related to Lineage
@@ -219,6 +229,16 @@ type IdentityManagementConfig {
 Configurations related to managed, UI based ingestion
 """
 type ManagedIngestionConfig {
+  """
+  Whether ingestion screen is enabled in the UI
+  """
+  enabled: Boolean!
+}
+
+"""
+Configurations related to adhoc creation of datasets
+"""
+type CreateAdhocConfig {
   """
   Whether ingestion screen is enabled in the UI
   """

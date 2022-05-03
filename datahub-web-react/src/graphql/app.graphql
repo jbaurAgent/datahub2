@@ -28,6 +28,9 @@ query appConfig {
         lineageConfig {
             supportsImpactAnalysis
         }
+        createAdhocConfig{
+            enabled
+        }
         managedIngestionConfig {
             enabled
         }

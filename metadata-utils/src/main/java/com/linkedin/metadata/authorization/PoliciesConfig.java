@@ -22,6 +22,11 @@ public class PoliciesConfig {
 
   // Platform Privileges //
 
+  public static final Privilege CREATE_DATASET_PRIVILEGE = Privilege.of(
+      "CREATE_ADHOC_DATASET",
+      "Create Adhoc Datasets",
+      "Ability to use the UI form and API to create datasets");
+
   public static final Privilege MANAGE_POLICIES_PRIVILEGE = Privilege.of(
       "MANAGE_POLICIES",
       "Manage Policies",
@@ -65,6 +70,7 @@ public class PoliciesConfig {
       MANAGE_DOMAINS_PRIVILEGE,
       MANAGE_INGESTION_PRIVILEGE,
       MANAGE_SECRETS_PRIVILEGE,
+      CREATE_DATASET_PRIVILEGE,
       GENERATE_PERSONAL_ACCESS_TOKENS_PRIVILEGE
   );
 

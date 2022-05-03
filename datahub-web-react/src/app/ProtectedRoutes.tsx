@@ -14,6 +14,7 @@ import { ManageIdentitiesPage } from './identity/ManageIdentitiesPage';
 import { SettingsPage } from './settings/SettingsPage';
 import { ManageIngestionPage } from './ingest/ManageIngestionPage';
 import { ManageDomainsPage } from './domain/ManageDomainsPage';
+import { AdHocPage } from './create/AdHocPage';
 
 /**
  * Container for all views behind an authentication wall.
@@ -36,6 +37,7 @@ export const ProtectedRoutes = (): JSX.Element => {
                         <Route path={PageRoutes.SEARCH_RESULTS} render={() => <SearchPage />} />
                         <Route path={PageRoutes.BROWSE_RESULTS} render={() => <BrowseResultsPage />} />
                         <Route path={PageRoutes.ANALYTICS} render={() => <AnalyticsPage />} />
+                        <Route path={PageRoutes.ADHOC} render={() => <AdHocPage />} />
                         <Route path={PageRoutes.POLICIES} render={() => <PoliciesPage />} />
                         <Route path={PageRoutes.IDENTITIES} render={() => <ManageIdentitiesPage />} />
                         <Route path={PageRoutes.DOMAINS} render={() => <ManageDomainsPage />} />

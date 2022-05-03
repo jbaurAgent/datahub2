@@ -13,6 +13,9 @@ export const DEFAULT_APP_CONFIG = {
     identityManagementConfig: {
         enabled: false,
     },
+    createAdhocConfig: {
+        enabled: false,
+    },
     managedIngestionConfig: {
         enabled: false,
     },

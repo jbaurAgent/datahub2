@@ -7,6 +7,7 @@ import {
     SettingOutlined,
     UsergroupAddOutlined,
     FolderOutlined,
+    EditOutlined,
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import { Button } from 'antd';
@@ -25,8 +26,10 @@ export function AdminHeaderLinks() {
     const isPoliciesEnabled = config?.policiesConfig.enabled;
     const isIdentityManagementEnabled = config?.identityManagementConfig.enabled;
     const isIngestionEnabled = config?.managedIngestionConfig.enabled;
+    const isAdhocCreateEnabled = config?.createAdhocConfig.enabled;
 
     const showAnalytics = (isAnalyticsEnabled && me && me.platformPrivileges.viewAnalytics) || false;
+    const showAdhoc = (isAdhocCreateEnabled && me && me.platformPrivileges.createAdhocDatasets) || false;
     const showPolicyBuilder = (isPoliciesEnabled && me && me.platformPrivileges.managePolicies) || false;
     const showIdentityManagement =
         (isIdentityManagementEnabled && me && me.platformPrivileges.manageIdentities) || false;
@@ -37,6 +40,15 @@ export function AdminHeaderLinks() {
 
     return (
         <>
+            {showAdhoc && (
+                <AdminLink>
+                    <Link to="/adhoc/">
+                        <Button type="text">
+                            <EditOutlined /> Create Dataset
+                        </Button>
+                    </Link>
+                </AdminLink>
+            )}
             {showAnalytics && (
                 <AdminLink>
                     <Link to="/analytics">

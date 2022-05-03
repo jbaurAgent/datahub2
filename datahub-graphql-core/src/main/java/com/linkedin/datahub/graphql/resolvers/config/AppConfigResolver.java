@@ -12,6 +12,7 @@ import com.linkedin.datahub.graphql.generated.PoliciesConfig;
 import com.linkedin.datahub.graphql.generated.Privilege;
 import com.linkedin.datahub.graphql.generated.ResourcePrivileges;
 import com.linkedin.datahub.graphql.generated.VisualConfiguration;
+import com.linkedin.datahub.graphql.generated.CreateAdhocConfig;
 import com.linkedin.metadata.config.IngestionConfiguration;
 import com.linkedin.metadata.version.GitVersion;
 import graphql.schema.DataFetcher;
@@ -30,7 +31,7 @@ public class AppConfigResolver implements DataFetcher<CompletableFuture<AppConfi
   private final IngestionConfiguration _ingestionConfiguration;
   private final AuthorizationConfiguration _authorizationConfiguration;
   private final boolean _supportsImpactAnalysis;
-  private final VisualConfiguration _visualConfiguration;
+  private final VisualConfiguration _visualConfiguration;  
 
   public AppConfigResolver(
       final GitVersion gitVersion,
@@ -80,12 +81,16 @@ public class AppConfigResolver implements DataFetcher<CompletableFuture<AppConfi
     final IdentityManagementConfig identityManagementConfig = new IdentityManagementConfig();
     identityManagementConfig.setEnabled(true); // Identity Management always enabled. TODO: Understand if there's a case where this should change.
 
+    final CreateAdhocConfig adhocConfig = new CreateAdhocConfig();
+    adhocConfig.setEnabled(true);
+
     final ManagedIngestionConfig ingestionConfig = new ManagedIngestionConfig();
     ingestionConfig.setEnabled(_ingestionConfiguration.isEnabled());
     appConfig.setAnalyticsConfig(analyticsConfig);
     appConfig.setPoliciesConfig(policiesConfig);
     appConfig.setIdentityManagementConfig(identityManagementConfig);
     appConfig.setManagedIngestionConfig(ingestionConfig);
+    appConfig.setCreateAdhocConfig(adhocConfig);
 
     appConfig.setVisualConfig(_visualConfiguration);
 

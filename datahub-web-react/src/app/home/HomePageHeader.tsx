@@ -14,7 +14,6 @@ import {
 } from '../../graphql/search.generated';
 import { EntityType } from '../../types.generated';
 import analytics, { EventType } from '../analytics';
-import AdhocLink from '../create/AdhocLink';
 import HelpLink from '../shared/admin/HelpLink';
 import { AdminHeaderLinks } from '../shared/admin/AdminHeaderLinks';
 import { ANTD_GRAY } from '../entity/shared/constants';
@@ -191,7 +190,6 @@ export const HomePageHeader = () => {
                 <NavGroup>
                     <ContactLink />
                     <HelpLink />
-                    <AdhocLink />
                     <AdminHeaderLinks />
                     <ManageAccount
                         urn={user?.urn || ''}

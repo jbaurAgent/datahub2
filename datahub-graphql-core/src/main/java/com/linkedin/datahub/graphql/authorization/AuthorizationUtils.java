@@ -17,6 +17,10 @@ public class AuthorizationUtils {
     return isAuthorized(context, Optional.empty(), PoliciesConfig.MANAGE_USERS_AND_GROUPS_PRIVILEGE);
   }
 
+  public static boolean canCreateAdhocDatasets(@Nonnull QueryContext context) {
+    return isAuthorized(context, Optional.empty(), PoliciesConfig.CREATE_DATASET_PRIVILEGE);
+  }
+
   public static boolean canGeneratePersonalAccessToken(@Nonnull QueryContext context) {
     return isAuthorized(context, Optional.empty(), PoliciesConfig.GENERATE_PERSONAL_ACCESS_TOKENS_PRIVILEGE);
   }

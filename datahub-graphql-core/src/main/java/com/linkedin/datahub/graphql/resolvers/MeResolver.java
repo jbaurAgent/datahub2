@@ -53,13 +53,14 @@ public class MeResolver implements DataFetcher<CompletableFuture<AuthenticatedUs
 
         // 2. Get platform privileges
         final PlatformPrivileges platformPrivileges = new PlatformPrivileges();
-        platformPrivileges.setViewAnalytics(canViewAnalytics(context));
+        platformPrivileges.setViewAnalytics(canViewAnalytics(context));        
         platformPrivileges.setManagePolicies(canManagePolicies(context));
         platformPrivileges.setManageIdentities(canManageUsersGroups(context));
         platformPrivileges.setGeneratePersonalAccessTokens(canGeneratePersonalAccessToken(context));
         platformPrivileges.setManageDomains(canManageDomains(context));
         platformPrivileges.setManageIngestion(canManageIngestion(context));
         platformPrivileges.setManageSecrets(canManageSecrets(context));
+        platformPrivileges.setCreateAdhocDatasets(canCreateAdhocDatasets(context));
 
         // Construct and return authenticated user object.
         final AuthenticatedUser authUser = new AuthenticatedUser();
@@ -106,6 +107,13 @@ public class MeResolver implements DataFetcher<CompletableFuture<AuthenticatedUs
    */
   private boolean canManageDomains(final QueryContext context) {
     return isAuthorized(context.getAuthorizer(), context.getActorUrn(), PoliciesConfig.MANAGE_DOMAINS_PRIVILEGE);
+  }
+
+  /**
+   * Returns true if the authenticated user has privileges to create adhoc datasets
+   */
+  private boolean canCreateAdhocDatasets(final QueryContext context) {
+    return isAuthorized(context.getAuthorizer(), context.getActorUrn(), PoliciesConfig.CREATE_DATASET_PRIVILEGE);
   }
 
   /**

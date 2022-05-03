@@ -297,6 +297,7 @@ export const editMocks = [
                         manageIngestion: true,
                         manageSecrets: true,
                         manageDomains: true,
+                        createAdhocDatasets: true,
                     },
                 },
             },

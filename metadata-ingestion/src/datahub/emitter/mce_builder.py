@@ -4,7 +4,6 @@ import logging
 import os
 import re
 import time
-from distutils.util import strtobool
 from enum import Enum
 from hashlib import md5
 from typing import Any, List, Optional, Type, TypeVar, Union, cast, get_type_hints

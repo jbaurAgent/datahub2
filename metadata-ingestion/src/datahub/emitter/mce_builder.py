@@ -40,8 +40,8 @@ logger = logging.getLogger(__name__)
 DEFAULT_ENV = DEFAULT_ENV_CONFIGURATION
 DEFAULT_FLOW_CLUSTER = "prod"
 UNKNOWN_USER = "urn:li:corpuser:unknown"
-DATASET_URN_TO_LOWER: bool = strtobool(
-    os.getenv("DATAHUB_DATASET_URN_TO_LOWER", "false")
+DATASET_URN_TO_LOWER: bool = (
+    os.getenv("DATAHUB_DATASET_URN_TO_LOWER", "false") == "true"
 )
 
 

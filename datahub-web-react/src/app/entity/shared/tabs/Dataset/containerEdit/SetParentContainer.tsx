@@ -7,10 +7,6 @@ import { Form } from 'antd';
 import { useGetSearchResultsLazyQuery } from '../../../../../../graphql/search.generated';
 import { useEntityRegistry } from '../../../../../useEntityRegistry';
 import { EntityType, SearchResult } from '../../../../../../types.generated';
-// import { useGetContainerLazyQuery } from '../../../../../../graphql/container.generated';
-// import { useGetContainerLazyQuery } from '../../../../../../graphql/container.generated';
-
-// import Link from 'antd/lib/typography/Link';
 
 const SearchResultContainer = styled.div`
     display: flex;
@@ -25,13 +21,19 @@ const SearchResultContent = styled.div`
     align-items: center;
 `;
 
-const SearchResultDisplayName = styled.div`
-    margin-left: 5px;
-`;
+// const SearchResultDisplayName = styled.div`
+//     margin-left: 5px;
+// `;
 
 interface Props {
     platformType: string;
+    compulsory: boolean;
 }
+
+const formItemLayout = {
+    labelCol: { span: 6 },
+    wrapperCol: { span: 14 },
+};
 
 export const SetParentContainer = (props: Props) => {
     // need this to render the display name of the container
@@ -42,13 +44,10 @@ export const SetParentContainer = (props: Props) => {
     const searchResults = containerSearchData?.search?.searchResults || [];
     const renderSearchResult = (result: SearchResult) => {
         const displayName = entityRegistry.getDisplayName(result.entity.type, result.entity);
-        console.log(`display name is ${displayName}`);
         return (
             <SearchResultContainer>
                 <SearchResultContent>
-                    <SearchResultDisplayName>
-                        <div>{displayName}</div>
-                    </SearchResultDisplayName>
+                    <div>{displayName}</div>
                 </SearchResultContent>
             </SearchResultContainer>
         );
@@ -83,23 +82,23 @@ export const SetParentContainer = (props: Props) => {
     return (
         <>
             <Form.Item
-                name="parentContainerSelect"
+                {...formItemLayout}
+                name="parentContainer"
                 label="Specify a Container for the Dataset (Optional)"
                 rules={[
                     {
-                        required: true,
+                        required: props.compulsory,
                         message: 'A container must be specified.',
                     },
                 ]}
             >
                 <Select
-                    style={{ width: 200 }}
+                    style={{ width: 300 }}
                     showSearch
                     autoFocus
                     filterOption={false}
-                    value={JSON.stringify(selectedContainers)}
-                    mode="multiple"
-                    showArrow={false}
+                    value={selectedContainers}
+                    showArrow
                     placeholder="Search for a parent container.."
                     onSearch={handleContainerSearch}
                     onSelect={(container: any) => onSelectMember(container)}
@@ -108,9 +107,7 @@ export const SetParentContainer = (props: Props) => {
                     onDeselect={removeOption}
                 >
                     {searchResults?.map((result) => (
-                        <Select.Option disabled={selectedContainers !== ''} value={result.entity.urn}>
-                            {renderSearchResult(result)}
-                        </Select.Option>
+                        <Select.Option value={result.entity.urn}>{renderSearchResult(result)}</Select.Option>
                     ))}
                 </Select>
             </Form.Item>

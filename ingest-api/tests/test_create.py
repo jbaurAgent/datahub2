@@ -22,7 +22,6 @@ from ingest_api.helper.mce_convenience import (create_new_schema_mce,
                                                make_ownership_mce,
                                                make_platform, make_profile_mcp,
                                                make_status_mce, make_user_urn)
-from ingest_api.helper.models import determine_type
 
 FROZEN_TIME = "2021-07-01 02:58:30.242"
 
@@ -182,7 +181,3 @@ def test_create_profile(
     assert generated_dict == golden_mce
     os.remove(output_path)
 
-
-def test_type_string():
-    assert determine_type("text/csv") == "csv"
-    assert determine_type({"dataset_type": "application/octet-stream"}) == "csv"

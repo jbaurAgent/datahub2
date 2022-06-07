@@ -37,7 +37,9 @@ const platformSelection = [
     'urn:li:dataPlatform:mariadb',
     'urn:li:dataPlatform:hdfs',
     'urn:li:dataPlatform:hive',
+    'urn:li:dataPlatform:kudu',
     'urn:li:dataPlatform:postgres',
+    'urn:li:dataPlatform:openapi',
 ];
 
 export const DataPlatformSelect = () => {
@@ -81,7 +83,8 @@ export const DataPlatformSelect = () => {
                 <Select
                     style={{ width: 300 }}
                     autoFocus
-                    filterOption={false}
+                    filterOption
+                    showSearch
                     value={selectedPlatform}
                     showArrow
                     placeholder="Search for a parent container.."

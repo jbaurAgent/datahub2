@@ -21,7 +21,7 @@ export const CsvForm = () => {
     const user = useGetAuthenticatedUser();
     const userUrn = user?.corpUser?.urn || '';
     const userToken = GetMyToken(userUrn);
-    const [fileType, setFileType] = useState({ dataset_type: 'application/octet-stream' });
+    // const [fileType, setFileType] = useState({ dataset_type: 'application/octet-stream' });
     const [hasHeader, setHasHeader] = useState('no');
 
     const [form] = Form.useForm();
@@ -53,7 +53,7 @@ export const CsvForm = () => {
     const popupHandleOk = () => {
         setConfirmLoading(true);
         const values = form.getFieldsValue();
-        const finalValue = { ...values, ...fileType, dataset_owner: user?.corpUser?.username, user_token: userToken };
+        const finalValue = { ...values, dataset_owner: user?.corpUser?.username, user_token: userToken };
         axios
             .post(publishUrl, finalValue)
             .then((response) => printSuccessMsg(response.status))
@@ -80,7 +80,7 @@ export const CsvForm = () => {
         let headerLine = form.getFieldValue('headerLine');
         console.log('form values', form.getFieldValue('headerLine'));
         // set state for file type
-        setFileType({ dataset_type: fileInfo.type });
+        // setFileType({ dataset_type: fileInfo.type });
         // get the first row as headers
         if (data.length > 0 && headerLine <= data.length) {
             // map to array of objects

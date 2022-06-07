@@ -57,8 +57,8 @@ describe('CsvForm', () => {
         fireEvent.click(submitButton);
 
         await waitFor(() =>
-            // return error since the api endpoint is not up
-            expect(screen.getByText('Error: Network Error')),
+            // will return the popup modal
+            expect(screen.getByText('Confirm Dataset Name is correct: test dataset name', { exact: false })),
         );
     });
 

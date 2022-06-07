@@ -488,15 +488,16 @@ async def create_item(item: create_dataset_params) -> None:
     #todo - to revisit to see if refactoring is needed when make_json is up.
     """
     rootLogger.info("make_dataset_request_received from {}".format(item.dataset_owner))
-    rootLogger.debug("make_dataset_request_received {}".format(item))
-    item.dataset_type = determine_type(item.dataset_type)
+    rootLogger.info("make_dataset_request_received {}".format(item))
+    # item.dataset_type = determine_type(item.platformSelect)
     token = item.user_token
     user = item.dataset_owner
     requestor = make_user_urn(item.dataset_owner)
     if verify_token(token, user):
         item.dataset_name = "{}_{}".format(item.dataset_name, str(get_sys_time()))
-        datasetName = make_dataset_urn(item.dataset_type, item.dataset_name)
-        platformName = make_platform(item.dataset_type)
+        platformName = item.platformSelect
+        platform = platformName.split(':')[-1]
+        datasetName = make_dataset_urn(platform, item.dataset_name)
         item.browsepathList = [
             item + "/" if not item.endswith("/") else item
             for item in item.browsepathList
@@ -515,10 +516,9 @@ async def create_item(item: create_dataset_params) -> None:
             "has_header": item.dict().get("hasHeader", "n/a"),
             "header_row_number": headerRowNum,
         }
-        if item.dataset_type == "json":  # json has no headers
-            properties.pop("has_header")
-            properties.pop("header_row_number")
-
+        # if item.dataset_type == "json":  # json has no headers
+        #     properties.pop("has_header")
+        #     properties.pop("header_row_number")
         dataset_description = (
             item.dataset_description if item.dataset_description else ""
         )

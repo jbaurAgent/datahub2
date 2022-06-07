@@ -28,7 +28,6 @@ class FieldParamEdited(BaseModel):
 
 class create_dataset_params(BaseModel):
     dataset_name: str
-    dataset_type: Union[str, Dict[str, str]]
     fields: List[FieldParam]
     dataset_owner: str = "no_owner"
     dataset_description: str = ""
@@ -38,6 +37,8 @@ class create_dataset_params(BaseModel):
     headerLine: int = 1
     browsepathList: List[str]
     user_token: str
+    platformSelect: str
+    parentContainer: str = ""
 
 
 class dataset_status_params(BaseModel):
@@ -99,25 +100,23 @@ class name_param(BaseModel):
 
 #     class Config:
 #         arbitary_types_allowed = True
-
-
-def determine_type(type_input: Union[str, Dict[str, str]]) -> str:
-    """
-    this list will grow when we have more dataset types in the form
-    """
-    if isinstance(type_input, Dict):
-        type_input_str = type_input.get("dataset_type", "")
-    else:
-        type_input_str = type_input
-    if (type_input_str.lower() == "text/csv") or (
-        type_input_str.lower() == "application/octet-stream"
-    ):
-        return "csv"
-    if type_input_str.lower() == "json":
-        return "json"  #
-    else:
-        log.error(f"data type for request is {type_input}")
-        return "csv"
+# def determine_type(type_input: Union[str, Dict[str, str]]) -> str:
+#     """
+#     this list will grow when we have more dataset types in the form
+#     """
+#     if isinstance(type_input, Dict):
+#         type_input_str = type_input.get("dataset_type", "")
+#     else:
+#         type_input_str = type_input
+#     if (type_input_str.lower() == "text/csv") or (
+#         type_input_str.lower() == "application/octet-stream"
+#     ):
+#         return "csv"
+#     if type_input_str.lower() == "json":
+#         return "json"  #
+#     else:
+#         log.error(f"data type for request is {type_input}")
+#         return "csv"
 
 class MyFilter(object):
     def __init__(self, level):

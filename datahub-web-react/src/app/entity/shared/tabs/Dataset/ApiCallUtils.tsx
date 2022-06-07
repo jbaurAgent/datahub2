@@ -13,3 +13,8 @@ export const printSuccessMsg = async (status) => {
 export const printErrorMsg = (error) => {
     message.error(error, 10).then();
 };
+
+export const printSuccessMsgWithoutReload = async (status) => {
+    message.success(`Status:${status} - Request submitted successfully.`, 5).then();
+    // only reload page if the call is successful, else do not reload.
+};

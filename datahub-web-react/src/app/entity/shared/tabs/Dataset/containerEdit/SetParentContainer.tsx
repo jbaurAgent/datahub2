@@ -38,6 +38,7 @@ const formItemLayout = {
 export const SetParentContainer = (props: Props) => {
     // need this to render the display name of the container
     // decided not to put name of parent container of selected container - the new feature in 0.8.36 would be better
+    console.log(`the dataPlatform chosen is ${props.platformType}`);
     const entityRegistry = useEntityRegistry();
     const [selectedContainers, setSelectedContainers] = useState('');
     const [containerSearch, { data: containerSearchData }] = useGetSearchResultsLazyQuery();

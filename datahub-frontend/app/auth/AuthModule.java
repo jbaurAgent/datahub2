@@ -20,9 +20,8 @@ import org.pac4j.core.config.Config;
 import org.pac4j.core.context.session.SessionStore;
 import org.pac4j.play.LogoutController;
 import org.pac4j.play.http.PlayHttpActionAdapter;
-import org.pac4j.play.store.PlayCookieSessionStore;
+import org.pac4j.play.store.PlayCacheSessionStore;
 import org.pac4j.play.store.PlaySessionStore;
-import org.pac4j.play.store.ShiroAesDataEncrypter;
 import play.Environment;
 
 import java.util.ArrayList;
@@ -32,6 +31,7 @@ import auth.sso.oidc.OidcConfigs;
 import auth.sso.SsoConfigs;
 import auth.sso.SsoManager;
 import controllers.SsoCallbackController;
+import play.cache.SyncCacheApi;
 import utils.ConfigUtil;
 
 import static auth.AuthUtils.*;
@@ -44,37 +44,25 @@ import static utils.ConfigUtil.*;
  */
 public class AuthModule extends AbstractModule {
 
-    /**
-     * Pac4j Stores Session State in a browser-side cookie in encrypted fashion. This configuration
-     * value provides a stable encryption base from which to derive the encryption key.
-     *
-     * We hash this value (SHA1), then take the first 16 bytes as the AES key.
-     */
-    private static final String PAC4J_AES_KEY_BASE_CONF = "play.http.secret.key";
     private final com.typesafe.config.Config _configs;
-
     public AuthModule(final Environment environment, final com.typesafe.config.Config configs) {
         _configs = configs;
     }
 
     @Override
     protected void configure() {
-        PlayCookieSessionStore playCacheCookieStore;
-        try {
-            // To generate a valid encryption key from an input value, we first
-            // hash the input to generate a fixed-length string. Then, we convert
-            // it to hex and slice the first 16 bytes, because AES key length must strictly
-            // have a specific length.
-            final String aesKeyBase = _configs.getString(PAC4J_AES_KEY_BASE_CONF);
-            final String aesKeyHash = DigestUtils.sha1Hex(aesKeyBase.getBytes(StandardCharsets.UTF_8));
-            final String aesEncryptionKey = aesKeyHash.substring(0, 16);
-            playCacheCookieStore = new PlayCookieSessionStore(
-                new ShiroAesDataEncrypter(aesEncryptionKey));
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to instantiate Pac4j cookie session store!", e);
-        }
-        bind(SessionStore.class).toInstance(playCacheCookieStore);
-        bind(PlaySessionStore.class).toInstance(playCacheCookieStore);
+
+        /**
+         * In Pac4J, you are given the option to store the profiles of authenticated users in either
+         * (i) PlayCacheSessionStore - saves your data in the Play cache or
+         * (ii) PlayCookieSessionStore saves your data in the Play session cookie
+         * However there is problem (https://github.com/datahub-project/datahub/issues/4448) observed when storing the Pac4j profile in cookie.
+         * Whenever the profile returned by Pac4j is greater than 4096 characters, the response will be rejected by the browser.
+         */
+
+        final PlayCacheSessionStore playCacheSessionStore = new PlayCacheSessionStore(getProvider(SyncCacheApi.class));
+        bind(SessionStore.class).toInstance(playCacheSessionStore);
+        bind(PlaySessionStore.class).toInstance(playCacheSessionStore);
 
         try {
             bind(SsoCallbackController.class).toConstructor(SsoCallbackController.class.getConstructor(

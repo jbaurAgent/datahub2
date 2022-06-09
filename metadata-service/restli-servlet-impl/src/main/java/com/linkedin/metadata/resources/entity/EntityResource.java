@@ -9,7 +9,6 @@ import com.linkedin.common.urn.Urn;
 import com.linkedin.data.template.LongMap;
 import com.linkedin.data.template.StringArray;
 import com.linkedin.entity.Entity;
-import com.linkedin.metadata.Constants;
 import com.linkedin.metadata.browse.BrowseResult;
 import com.linkedin.metadata.entity.EntityService;
 import com.linkedin.metadata.entity.RollbackRunResult;

@@ -1,6 +1,8 @@
 package com.linkedin.metadata.resources.entity;
 
 import com.codahale.metrics.MetricRegistry;
+import com.datahub.authentication.Authentication;
+import com.datahub.authentication.AuthenticationContext;
 import com.linkedin.aspect.GetTimeseriesAspectValuesResponse;
 import com.linkedin.common.AuditStamp;
 import com.linkedin.common.urn.Urn;
@@ -124,9 +126,13 @@ public class AspectResource extends CollectionResourceTaskTemplate<String, Versi
       @ActionParam(PARAM_PROPOSAL) @Nonnull MetadataChangeProposal metadataChangeProposal) throws URISyntaxException {
     log.info("INGEST PROPOSAL proposal: {}", metadataChangeProposal);
 
-    // TODO: Use the actor present in the IC.
+    Authentication authentication = AuthenticationContext.getAuthentication();
+    String actorUrnStr = authentication.getActor().toUrnStr();
+    // Getting actor from AuthenticationContext
+    log.debug(String.format("Retrieving AuthenticationContext for Actor with : %s", actorUrnStr));
     final AuditStamp auditStamp =
-        new AuditStamp().setTime(_clock.millis()).setActor(Urn.createFromString(Constants.UNKNOWN_ACTOR));
+        new AuditStamp().setTime(_clock.millis()).setActor(Urn.createFromString(actorUrnStr));
+
     final List<MetadataChangeProposal> additionalChanges =
         AspectUtils.getAdditionalChanges(metadataChangeProposal, _entityService);
 

@@ -270,13 +270,13 @@ class KuduSource(Source):
                     db_cursor.execute(
                         f"""select * from {dataset_name} where 
                         {sql_config.profiling.query_date_field}>='{sql_config.profiling.query_date}'
-                        and {sql_config.profiling.query_date_field} < {upper_date_limit}"""  # noqa
+                        and {sql_config.profiling.query_date_field} < '{upper_date_limit}'"""  # noqa
                     )
                 else:
                     db_cursor.execute(
                         f"""select * from {dataset_name} where 
                         {sql_config.profiling.query_date_field}>='{sql_config.profiling.query_date}'
-                        and {sql_config.profiling.query_date_field} < {upper_date_limit} 
+                        and {sql_config.profiling.query_date_field} < '{upper_date_limit}'
                         limit {sql_config.profiling.limit}"""  # noqa
                     )
             columns = [desc[0] for desc in db_cursor.description]

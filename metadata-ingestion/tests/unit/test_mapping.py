@@ -47,11 +47,6 @@ def get_operation_defs() -> Dict[str, Any]:
             "operation": "add_term",
             "config": {"term": "Finance.test"},
         },
-        "tag": {
-            "match": ".*",
-            "operation": "add_tag",
-            "config": {"tag": "{{ $match }}"},
-        },
     }
 
 
@@ -81,7 +76,6 @@ def test_operation_processor_matching():
         "pii": True,
         "int_property": 1,
         "double_property": 2.5,
-        "tag": "Finance",
     }
     processor = OperationProcessor(
         operation_defs=get_operation_defs(),
@@ -101,10 +95,9 @@ def test_operation_processor_matching():
         term_association_class.urn for term_association_class in term_aspect.terms
     ]
     assert (
-        len(tags_added) == 3
+        len(tags_added) == 2
         and "urn:li:tag:has_pii_test" in tags_added
         and "urn:li:tag:int_property" in tags_added
-        and "urn:li:tag:Finance" in tags_added
     )
     assert (
         len(terms_added) == 2

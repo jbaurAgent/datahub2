@@ -68,7 +68,7 @@ type Props = {
     fetchedEntities: { [x: string]: FetchedEntity };
     onEntityClick: (EntitySelectParams) => void;
     onEntityCenter: (EntitySelectParams) => void;
-    onLineageExpand: (data: EntityAndType) => void;
+    onLineageExpand: (LineageExpandParams) => void;
     selectedEntity?: EntitySelectParams;
     zoom: ProvidedZoom & {
         transformMatrix: TransformMatrix;

@@ -64,10 +64,7 @@ query getDataset($urn: String!) {
         container {
             ...entityContainer
         }
-        parentContainers {
-            ...parentContainersFields
-        }
-        usageStats(range: MONTH) {
+        usageStats(resource: $urn, range: MONTH) {
             buckets {
                 bucket
                 duration
@@ -123,7 +120,6 @@ query getDataset($urn: String!) {
         }
         operations(limit: 1) {
             timestampMillis
-            lastUpdatedTimestamp
         }
         upstream: lineage(input: { direction: UPSTREAM, start: 0, count: 100 }) {
             ...fullLineageResults
@@ -153,20 +149,6 @@ query getDataset($urn: String!) {
             count
             start
             total
-        }
-        testResults {
-            passing {
-                test {
-                    ...testFields
-                }
-                type
-            }
-            failing {
-                test {
-                    ...testFields
-                }
-                type
-            }
         }
     }
 }

@@ -8,7 +8,6 @@ import {
     SearchInsight,
     Domain,
     Container,
-    ParentContainersResult,
 } from '../../../../types.generated';
 import DefaultPreviewCard from '../../../preview/DefaultPreviewCard';
 import { useEntityRegistry } from '../../../useEntityRegistry';
@@ -22,7 +21,6 @@ export const Preview = ({
     description,
     platformName,
     platformLogo,
-    platformInstanceId,
     owners,
     globalTags,
     domain,
@@ -31,7 +29,6 @@ export const Preview = ({
     glossaryTerms,
     subtype,
     container,
-    parentContainers,
 }: {
     urn: string;
     name: string;
@@ -39,7 +36,6 @@ export const Preview = ({
     description?: string | null;
     platformName: string;
     platformLogo?: string | null;
-    platformInstanceId?: string;
     owners?: Array<Owner> | null;
     domain?: Domain | null;
     globalTags?: GlobalTags | null;
@@ -48,7 +44,6 @@ export const Preview = ({
     glossaryTerms?: GlossaryTerms | null;
     subtype?: string | null;
     container?: Container | null;
-    parentContainers?: ParentContainersResult | null;
 }): JSX.Element => {
     const entityRegistry = useEntityRegistry();
     const capitalPlatformName = capitalizeFirstLetterOnly(platformName);
@@ -61,7 +56,6 @@ export const Preview = ({
             logoUrl={platformLogo || ''}
             typeIcon={entityRegistry.getIcon(EntityType.Dataset, 12, IconStyleType.ACCENT)}
             platform={capitalPlatformName}
-            platformInstanceId={platformInstanceId}
             qualifier={origin}
             tags={globalTags || undefined}
             owners={owners}
@@ -70,7 +64,6 @@ export const Preview = ({
             snippet={snippet}
             glossaryTerms={glossaryTerms || undefined}
             insights={insights}
-            parentContainers={parentContainers}
         />
     );
 };

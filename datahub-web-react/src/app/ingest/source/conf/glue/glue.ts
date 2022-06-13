@@ -35,7 +35,7 @@ const glueConfig: SourceConfig = {
     type: 'glue',
     placeholderRecipe,
     displayName: 'Glue',
-    docsUrl: 'https://datahubproject.io/docs/generated/ingestion/sources/glue',
+    docsUrl: 'https://datahubproject.io/docs/metadata-ingestion/source_docs/glue',
     logoUrl: glueLogo,
 };
 

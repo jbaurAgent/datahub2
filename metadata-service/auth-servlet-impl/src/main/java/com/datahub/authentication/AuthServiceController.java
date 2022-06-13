@@ -1,7 +1,7 @@
 package com.datahub.authentication;
 
 import com.datahub.authentication.token.TokenType;
-import com.datahub.authentication.token.StatelessTokenService;
+import com.datahub.authentication.token.TokenService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,7 +27,7 @@ public class AuthServiceController {
   private static final String ACCESS_TOKEN_FIELD_NAME = "accessToken";
 
   @Inject
-  StatelessTokenService _statelessTokenService;
+  TokenService _tokenService;
 
   @Inject
   Authentication _systemAuthentication;
@@ -81,7 +81,7 @@ public class AuthServiceController {
       if (isAuthorizedToGenerateSessionToken(actorId)) {
         try {
           // 2. Generate a new DataHub JWT
-          final String token = _statelessTokenService.generateAccessToken(
+          final String token = _tokenService.generateAccessToken(
               TokenType.SESSION,
               new Actor(ActorType.USER, userId.asText()),
               _configProvider.getAuthentication().getSessionTokenDurationMs());

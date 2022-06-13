@@ -19,7 +19,6 @@ export const Preview = ({ model }: { model: MlModel }): JSX.Element => {
             url={entityRegistry.getEntityUrl(EntityType.Mlmodel, model.urn)}
             name={model.name || ''}
             description={model.description || ''}
-            platformInstanceId={model.dataPlatformInstance?.instanceId}
             type={entityRegistry.getEntityName(EntityType.Mlmodel)}
             logoComponent={
                 <LogoContainer>{entityRegistry.getIcon(EntityType.Mlmodel, 20, IconStyleType.HIGHLIGHT)}</LogoContainer>

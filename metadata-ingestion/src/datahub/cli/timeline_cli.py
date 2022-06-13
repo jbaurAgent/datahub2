@@ -12,7 +12,6 @@ from termcolor import colored
 import datahub.cli.cli_utils
 from datahub.emitter.mce_builder import dataset_urn_to_key, schema_field_urn_to_key
 from datahub.telemetry import telemetry
-from datahub.upgrade import upgrade
 from datahub.utilities.urns.urn import Urn
 
 logger = logging.getLogger(__name__)
@@ -133,7 +132,6 @@ def get_timeline(
 )
 @click.option("--raw", type=bool, is_flag=True, help="Show the raw diff")
 @click.pass_context
-@upgrade.check_upgrade
 @telemetry.with_telemetry
 def timeline(
     ctx: Any,
@@ -206,8 +204,8 @@ def timeline(
             if change_txn["changeEvents"] is not None:
                 for change_event in change_txn["changeEvents"]:
                     element_string = (
-                        f"({pretty_id(change_event.get('elementId') or change_event.get('modifier'))})"
-                        if change_event.get("elementId") or change_event.get("modifier")
+                        f"({pretty_id(change_event.get('elementId'))})"
+                        if change_event.get("elementId")
                         else ""
                     )
                     event_change_color: str = (
@@ -215,13 +213,9 @@ def timeline(
                         if change_event.get("semVerChange") == "MINOR"
                         else "red"
                     )
-                    target_string = pretty_id(
-                        change_event.get("target")
-                        or change_event.get("entityUrn")
-                        or ""
-                    )
+                    target_string = pretty_id(change_event.get("target") or "")
                     print(
-                        f"\t{colored(change_event.get('changeType') or change_event.get('operation'),event_change_color)} {change_event.get('category')} {target_string} {element_string}: {change_event['description']}"
+                        f"\t{colored(change_event['changeType'],event_change_color)} {change_event.get('category')} {target_string} {element_string}: {change_event['description']}"
                     )
     else:
         click.echo(

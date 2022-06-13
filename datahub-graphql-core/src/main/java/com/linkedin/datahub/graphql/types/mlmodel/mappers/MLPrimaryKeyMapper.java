@@ -1,6 +1,5 @@
 package com.linkedin.datahub.graphql.types.mlmodel.mappers;
 
-import com.linkedin.common.DataPlatformInstance;
 import com.linkedin.common.Deprecation;
 import com.linkedin.common.GlobalTags;
 import com.linkedin.common.GlossaryTerms;
@@ -14,7 +13,6 @@ import com.linkedin.datahub.graphql.generated.EntityType;
 import com.linkedin.datahub.graphql.generated.MLFeatureDataType;
 import com.linkedin.datahub.graphql.generated.MLPrimaryKey;
 import com.linkedin.datahub.graphql.generated.MLPrimaryKeyEditableProperties;
-import com.linkedin.datahub.graphql.types.common.mappers.DataPlatformInstanceAspectMapper;
 import com.linkedin.datahub.graphql.types.common.mappers.DeprecationMapper;
 import com.linkedin.datahub.graphql.types.common.mappers.InstitutionalMemoryMapper;
 import com.linkedin.datahub.graphql.types.common.mappers.OwnershipMapper;
@@ -69,8 +67,6 @@ public class MLPrimaryKeyMapper implements ModelMapper<EntityResponse, MLPrimary
             entity.setGlossaryTerms(GlossaryTermsMapper.map(new GlossaryTerms(dataMap))));
         mappingHelper.mapToResult(DOMAINS_ASPECT_NAME, this::mapDomains);
         mappingHelper.mapToResult(ML_PRIMARY_KEY_EDITABLE_PROPERTIES_ASPECT_NAME, this::mapEditableProperties);
-        mappingHelper.mapToResult(DATA_PLATFORM_INSTANCE_ASPECT_NAME, (dataset, dataMap) ->
-            dataset.setDataPlatformInstance(DataPlatformInstanceAspectMapper.map(new DataPlatformInstance(dataMap))));
         return mappingHelper.getResult();
     }
 

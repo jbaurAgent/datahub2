@@ -11,7 +11,6 @@ export const Preview = ({
     description,
     owners,
     platform,
-    platformInstanceId,
 }: {
     urn: string;
     name: string;
@@ -19,7 +18,6 @@ export const Preview = ({
     description?: string | null;
     owners?: Array<Owner> | null;
     platform?: DataPlatform | null | undefined;
-    platformInstanceId?: string;
 }): JSX.Element => {
     const entityRegistry = useEntityRegistry();
     return (
@@ -31,7 +29,6 @@ export const Preview = ({
             logoUrl={platform?.properties?.logoUrl || ''}
             type="MLPrimaryKey"
             owners={owners}
-            platformInstanceId={platformInstanceId}
         />
     );
 };

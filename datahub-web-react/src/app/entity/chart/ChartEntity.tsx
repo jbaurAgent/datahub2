@@ -16,7 +16,6 @@ import { ChartDashboardsTab } from '../shared/tabs/Entity/ChartDashboardsTab';
 import { getDataForEntityType } from '../shared/containers/profile/utils';
 import { capitalizeFirstLetter } from '../../shared/textUtil';
 import { SidebarDomainSection } from '../shared/containers/profile/sidebar/Domain/SidebarDomainSection';
-import { EntityMenuItems } from '../shared/EntityDropdown/EntityDropdown';
 
 /**
  * Definition of the DataHub Chart entity.
@@ -70,7 +69,6 @@ export class ChartEntity implements Entity<Chart> {
             useEntityQuery={useGetChartQuery}
             useUpdateQuery={useUpdateChartMutation}
             getOverrideProperties={this.getOverridePropertiesFromEntity}
-            headerDropdownItems={new Set([EntityMenuItems.COPY_URL, EntityMenuItems.UPDATE_DEPRECATION])}
             tabs={[
                 {
                     name: 'Documentation',
@@ -153,7 +151,6 @@ export class ChartEntity implements Entity<Chart> {
                 glossaryTerms={data?.glossaryTerms}
                 logoUrl={data?.platform?.properties?.logoUrl}
                 domain={data.domain}
-                parentContainers={data.parentContainers}
             />
         );
     };
@@ -164,7 +161,6 @@ export class ChartEntity implements Entity<Chart> {
             <ChartPreview
                 urn={data.urn}
                 platform={data.tool}
-                platformInstanceId={data.dataPlatformInstance?.instanceId}
                 name={data.properties?.name}
                 description={data.editableProperties?.description || data.properties?.description}
                 access={data.properties?.access}

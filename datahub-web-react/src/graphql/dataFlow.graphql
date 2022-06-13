@@ -41,9 +41,6 @@ fragment dataFlowFields on DataFlow {
     deprecation {
         ...deprecationFields
     }
-    dataPlatformInstance {
-        ...dataPlatformInstanceFields
-    }
 }
 
 query getDataFlow($urn: String!) {

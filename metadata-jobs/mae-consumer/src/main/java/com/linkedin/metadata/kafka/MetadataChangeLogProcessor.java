@@ -9,7 +9,6 @@ import com.linkedin.metadata.EventUtils;
 import com.linkedin.metadata.kafka.config.MetadataChangeLogProcessorCondition;
 import com.linkedin.metadata.kafka.hook.MetadataChangeLogHook;
 import com.linkedin.metadata.kafka.hook.UpdateIndicesHook;
-import com.linkedin.metadata.kafka.hook.event.EntityChangeEventGeneratorHook;
 import com.linkedin.metadata.kafka.hook.ingestion.IngestionSchedulerHook;
 import com.linkedin.metadata.utils.metrics.MetricUtils;
 import com.linkedin.mxe.MetadataChangeLog;
@@ -30,7 +29,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @Conditional(MetadataChangeLogProcessorCondition.class)
-@Import({UpdateIndicesHook.class, IngestionSchedulerHook.class, EntityChangeEventGeneratorHook.class, KafkaEventConsumerFactory.class})
+@Import({UpdateIndicesHook.class, IngestionSchedulerHook.class, KafkaEventConsumerFactory.class})
 @EnableKafka
 public class MetadataChangeLogProcessor {
 
@@ -38,11 +37,9 @@ public class MetadataChangeLogProcessor {
   private final Histogram kafkaLagStats = MetricUtils.get().histogram(MetricRegistry.name(this.getClass(), "kafkaLag"));
 
   @Autowired
-  public MetadataChangeLogProcessor(
-      @Nonnull final UpdateIndicesHook updateIndicesHook,
-      @Nonnull final IngestionSchedulerHook ingestionSchedulerHook,
-      @Nonnull final EntityChangeEventGeneratorHook entityChangeEventHook) {
-    this.hooks = ImmutableList.of(updateIndicesHook, ingestionSchedulerHook, entityChangeEventHook);
+  public MetadataChangeLogProcessor(@Nonnull final UpdateIndicesHook updateIndicesHook,
+      @Nonnull final IngestionSchedulerHook ingestionSchedulerHook) {
+    this.hooks = ImmutableList.of(updateIndicesHook, ingestionSchedulerHook);
     this.hooks.forEach(MetadataChangeLogHook::init);
   }
 
@@ -76,12 +73,11 @@ public class MetadataChangeLogProcessor {
           .time()) {
         hook.invoke(event);
       } catch (Exception e) {
-        // Just skip this hook and continue. - Note that this represents "at most once" processing.
+        // Just skip this hook and continue.
         MetricUtils.counter(this.getClass(), hook.getClass().getSimpleName() + "_failure").inc();
         log.error("Failed to execute MCL hook with name {}", hook.getClass().getCanonicalName(), e);
       }
     }
-    // TODO: Manually commit kafka offsets after full processing.
     MetricUtils.counter(this.getClass(), "consumed_mcl_count").inc();
     log.debug("Successfully completed MCL hooks for urn: {}, key: {}", event.getEntityUrn(),
         event.getEntityKeyAspect());

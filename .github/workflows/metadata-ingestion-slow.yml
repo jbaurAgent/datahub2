@@ -12,8 +12,6 @@ on:
     paths:
       - "**/nifi/**"
       - "**/nifi.py"
-      - "**/hana/**"
-      - "**/hana.py"
   release:
     types: [published, edited]
 

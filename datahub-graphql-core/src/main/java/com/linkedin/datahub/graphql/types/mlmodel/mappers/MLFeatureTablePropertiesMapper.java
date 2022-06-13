@@ -3,7 +3,6 @@ package com.linkedin.datahub.graphql.types.mlmodel.mappers;
 import com.linkedin.datahub.graphql.generated.MLFeature;
 import com.linkedin.datahub.graphql.generated.MLFeatureTableProperties;
 import com.linkedin.datahub.graphql.generated.MLPrimaryKey;
-import com.linkedin.datahub.graphql.types.common.mappers.StringMapMapper;
 import com.linkedin.datahub.graphql.types.mappers.ModelMapper;
 import lombok.NonNull;
 
@@ -40,10 +39,6 @@ public class MLFeatureTablePropertiesMapper implements ModelMapper<com.linkedin.
                     return mlPrimaryKey;
                 })
                 .collect(Collectors.toList()));
-        }
-
-        if (mlFeatureTableProperties.hasCustomProperties()) {
-            result.setCustomProperties(StringMapMapper.map(mlFeatureTableProperties.getCustomProperties()));
         }
 
         return result;

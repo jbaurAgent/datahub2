@@ -19,7 +19,6 @@ from datahub.cli.docker_check import (
 )
 from datahub.ingestion.run.pipeline import Pipeline
 from datahub.telemetry import telemetry
-from datahub.upgrade import upgrade
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +73,6 @@ def docker_check_impl() -> None:
 
 
 @docker.command()
-@upgrade.check_upgrade
 @telemetry.with_telemetry
 def check() -> None:
     """Check that the Docker containers are healthy"""
@@ -166,7 +164,6 @@ def should_use_neo4j_for_graph_service(graph_service_override: Optional[str]) ->
     default=None,
     help="If set, forces docker-compose to use that graph service implementation",
 )
-@upgrade.check_upgrade
 @telemetry.with_telemetry
 def quickstart(
     version: str,
@@ -234,18 +231,13 @@ def quickstart(
     ]
 
     # Pull and possibly build the latest containers.
-    try:
-        subprocess.run(
-            [*base_command, "pull"],
-            check=True,
-        )
-    except subprocess.CalledProcessError:
-        click.secho(
-            "Error while pulling images. Going to attempt to move on to docker-compose up assuming the images have "
-            "been built locally",
-            fg="red",
-        )
-
+    subprocess.run(
+        [
+            *base_command,
+            "pull",
+        ],
+        check=True,
+    )
     if build_locally:
         subprocess.run(
             [

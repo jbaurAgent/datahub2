@@ -15,7 +15,6 @@ import { DataFlowJobsTab } from '../shared/tabs/Entity/DataFlowJobsTab';
 import { getDataForEntityType } from '../shared/containers/profile/utils';
 import { capitalizeFirstLetter } from '../../shared/textUtil';
 import { SidebarDomainSection } from '../shared/containers/profile/sidebar/Domain/SidebarDomainSection';
-import { EntityMenuItems } from '../shared/EntityDropdown/EntityDropdown';
 
 /**
  * Definition of the DataHub DataFlow entity.
@@ -63,7 +62,6 @@ export class DataFlowEntity implements Entity<DataFlow> {
             useEntityQuery={useGetDataFlowQuery}
             useUpdateQuery={useUpdateDataFlowMutation}
             getOverrideProperties={this.getOverridePropertiesFromEntity}
-            headerDropdownItems={new Set([EntityMenuItems.COPY_URL, EntityMenuItems.UPDATE_DEPRECATION])}
             tabs={[
                 {
                     name: 'Documentation',
@@ -147,7 +145,6 @@ export class DataFlowEntity implements Entity<DataFlow> {
             <Preview
                 urn={data.urn}
                 name={data.properties?.name || ''}
-                platformInstanceId={data.dataPlatformInstance?.instanceId}
                 description={data.editableProperties?.description || data.properties?.description || ''}
                 platformName={platformName}
                 platformLogo={data?.platform?.properties?.logoUrl || ''}

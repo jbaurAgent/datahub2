@@ -55,8 +55,7 @@ workbook_graphql_query = """
           id
           name
           description
-          datasource {
-            id
+          upstreamColumns {
             name
           }
           ... on ColumnField {
@@ -125,10 +124,15 @@ workbook_graphql_query = """
           name
           id
         }
+        upstreamDatabases {
+          id
+          name
+          connectionType
+          isEmbedded
+        }
         upstreamTables {
           id
           name
-          isEmbedded
           database {
             name
           }
@@ -156,7 +160,6 @@ workbook_graphql_query = """
             aggregation
             columns {
               table {
-                __typename
                 ... on CustomSQLTable {
                   id
                   name
@@ -211,10 +214,13 @@ custom_sql_graphql_query = """
             __typename
             id
             name
+            upstreamDatabases {
+              id
+              name
+            }
             upstreamTables {
               id
               name
-              isEmbedded
               database {
                 name
               }
@@ -227,7 +233,6 @@ custom_sql_graphql_query = """
             }
             ... on EmbeddedDatasource {
               workbook {
-                id
                 name
                 projectName
               }
@@ -236,14 +241,12 @@ custom_sql_graphql_query = """
         }
       }
       tables {
-        id
         name
-        isEmbedded
+        schema
+        fullName
         database {
           name
         }
-        schema
-        fullName
         connectionType
       }
 }
@@ -258,10 +261,15 @@ published_datasource_graphql_query = """
     extractLastRefreshTime
     extractLastIncrementalUpdateTime
     extractLastUpdateTime
+    upstreamDatabases {
+      id
+      name
+      connectionType
+      isEmbedded
+    }
     upstreamTables {
       id
       name
-      isEmbedded
       database {
         name
       }
@@ -289,7 +297,6 @@ published_datasource_graphql_query = """
             aggregation
             columns {
                 table {
-                  __typename
                     ... on CustomSQLTable {
                         id
                         name

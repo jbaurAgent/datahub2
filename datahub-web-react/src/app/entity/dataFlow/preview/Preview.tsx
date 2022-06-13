@@ -7,7 +7,6 @@ import { capitalizeFirstLetter } from '../../../shared/textUtil';
 export const Preview = ({
     urn,
     name,
-    platformInstanceId,
     description,
     platformName,
     platformLogo,
@@ -19,7 +18,6 @@ export const Preview = ({
 }: {
     urn: string;
     name: string;
-    platformInstanceId?: string;
     description?: string | null;
     platformName: string;
     platformLogo?: string | null;
@@ -36,7 +34,6 @@ export const Preview = ({
             url={entityRegistry.getEntityUrl(EntityType.DataFlow, urn)}
             name={name}
             description={description || ''}
-            platformInstanceId={platformInstanceId}
             type="Data Pipeline"
             platform={capitalizedPlatform}
             logoUrl={platformLogo || ''}

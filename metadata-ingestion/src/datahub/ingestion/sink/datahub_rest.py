@@ -4,8 +4,7 @@ import logging
 from dataclasses import dataclass
 from typing import Union, cast
 
-from datahub.cli.cli_utils import set_env_variables_override_config
-from datahub.configuration.common import ConfigurationError, OperationalError
+from datahub.configuration.common import OperationalError
 from datahub.emitter.mcp import MetadataChangeProposalWrapper
 from datahub.emitter.rest_emitter import DatahubRestEmitter
 from datahub.ingestion.api.common import PipelineContext, RecordEnvelope, WorkUnit
@@ -52,22 +51,13 @@ class DatahubRestSink(Sink):
             extra_headers=self.config.extra_headers,
             ca_certificate_path=self.config.ca_certificate_path,
         )
-        try:
-            gms_config = self.emitter.test_connection()
-        except Exception as exc:
-            raise ConfigurationError(
-                f"💥 Failed to connect to DataHub@{self.config.server} (token:{'XXX-redacted' if self.config.token else 'empty'}) over REST",
-                exc,
-            )
-
+        gms_config = self.emitter.test_connection()
         self.report.gms_version = (
             gms_config.get("versions", {})
             .get("linkedin/datahub", {})
             .get("version", "")
         )
-        logger.debug("Setting env variables to override config")
-        set_env_variables_override_config(self.config.server, self.config.token)
-        logger.debug("Setting gms config")
+        logger.info("Setting gms config")
         set_gms_config(gms_config)
         self.executor = concurrent.futures.ThreadPoolExecutor(
             max_workers=self.config.max_threads

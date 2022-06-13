@@ -4,11 +4,9 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, Iterable, List, Optional, Tuple, Union
 
-import pydantic
 from looker_sdk.error import SDKError
 from looker_sdk.rtl.transport import TransportOptions
 from looker_sdk.sdk.api31.methods import Looker31SDK
-from pydantic import BaseModel, Field
 from pydantic.class_validators import validator
 
 import datahub.emitter.mce_builder as builder
@@ -64,13 +62,13 @@ from datahub.metadata.schema_classes import (
 logger = logging.getLogger(__name__)
 
 
-# @dataclass
-class NamingPattern(BaseModel):
+@dataclass
+class NamingPattern:
     allowed_vars: List[str]
     pattern: str
     variables: Optional[List[str]] = None
 
-    def validate_pattern(self, at_least_one: bool) -> bool:
+    def validate(self, at_least_one: bool) -> bool:
         variables = re.findall("({[^}{]+})", self.pattern)
         self.variables = [v[1:-1] for v in variables]
         for v in variables:
@@ -95,11 +93,8 @@ naming_pattern_variables: List[str] = [
 
 
 class LookerExploreNamingConfig(ConfigModel):
-    explore_naming_pattern: NamingPattern = pydantic.Field(
-        description="Pattern for providing dataset names to explores. Allowed variables are {project}, {model}, {name}. Default is `{model}.explore.{name}`",
-        default=NamingPattern(
-            allowed_vars=naming_pattern_variables, pattern="{model}.explore.{name}"
-        ),
+    explore_naming_pattern: NamingPattern = NamingPattern(
+        allowed_vars=naming_pattern_variables, pattern="{model}.explore.{name}"
     )
     explore_browse_pattern: NamingPattern = NamingPattern(
         allowed_vars=naming_pattern_variables,
@@ -120,23 +115,17 @@ class LookerExploreNamingConfig(ConfigModel):
     @validator("explore_naming_pattern", "explore_browse_pattern", always=True)
     def validate_naming_pattern(cls, v):
         assert isinstance(v, NamingPattern)
-        v.validate_pattern(at_least_one=True)
+        v.validate(at_least_one=True)
         return v
 
 
 class LookerViewNamingConfig(ConfigModel):
-    view_naming_pattern: NamingPattern = Field(
-        NamingPattern(
-            allowed_vars=naming_pattern_variables, pattern="{project}.view.{name}"
-        ),
-        description="Pattern for providing dataset names to views. Allowed variables are `{project}`, `{model}`, `{name}`",
+    view_naming_pattern: NamingPattern = NamingPattern(
+        allowed_vars=naming_pattern_variables, pattern="{project}.view.{name}"
     )
-    view_browse_pattern: NamingPattern = Field(
-        NamingPattern(
-            allowed_vars=naming_pattern_variables,
-            pattern="/{env}/{platform}/{project}/views/{name}",
-        ),
-        description="Pattern for providing browse paths to views. Allowed variables are `{project}`, `{model}`, `{name}`, `{platform}` and `{env}`",
+    view_browse_pattern: NamingPattern = NamingPattern(
+        allowed_vars=naming_pattern_variables,
+        pattern="/{env}/{platform}/{project}/views/{name}",
     )
 
     @validator("view_naming_pattern", "view_browse_pattern", pre=True)
@@ -153,24 +142,16 @@ class LookerViewNamingConfig(ConfigModel):
     @validator("view_naming_pattern", "view_browse_pattern", always=True)
     def validate_naming_pattern(cls, v):
         assert isinstance(v, NamingPattern)
-        v.validate_pattern(at_least_one=True)
+        v.validate(at_least_one=True)
         return v
 
 
 class LookerCommonConfig(
     LookerViewNamingConfig, LookerExploreNamingConfig, DatasetSourceConfigBase
 ):
-    tag_measures_and_dimensions: bool = Field(
-        True,
-        description="When enabled, attaches tags to measures, dimensions and dimension groups to make them more discoverable. When disabled, adds this information to the description of the column.",
-    )
-    platform_name: str = Field(
-        "looker", description="Default platform name. Don't change."
-    )
-    github_info: Optional[GitHubInfo] = Field(
-        None,
-        description="Reference to your github location to enable easy navigation from DataHub to your LookML files",
-    )
+    tag_measures_and_dimensions: bool = True
+    platform_name: str = "looker"
+    github_info: Optional[GitHubInfo] = None
 
 
 @dataclass
@@ -462,11 +443,6 @@ class LookerUtil:
                 primary_keys.append(schema_field.fieldPath)
         return fields, primary_keys
 
-    @staticmethod
-    def _display_name(name: str) -> str:
-        """Returns a display name that corresponds to the Looker conventions"""
-        return name.replace("_", " ").title() if name else name
-
 
 @dataclass
 class LookerExplore:
@@ -706,7 +682,7 @@ class LookerExplore:
         if self.source_file is not None:
             custom_properties["looker.explore.file"] = str(self.source_file)
         dataset_props = DatasetPropertiesClass(
-            name=str(self.label) if self.label else LookerUtil._display_name(self.name),
+            name=self.name,
             description=self.description,
             customProperties=custom_properties,
         )

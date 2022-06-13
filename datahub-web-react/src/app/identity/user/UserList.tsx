@@ -1,15 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Empty, List, message, Pagination } from 'antd';
 import styled from 'styled-components';
-import * as QueryString from 'query-string';
-import { useLocation } from 'react-router';
 import UserListItem from './UserListItem';
 import { Message } from '../../shared/Message';
 import { useListUsersQuery } from '../../../graphql/user.generated';
 import { CorpUser } from '../../../types.generated';
-import TabToolbar from '../../entity/shared/components/styled/TabToolbar';
-import { SearchBar } from '../../search/SearchBar';
-import { useEntityRegistry } from '../../useEntityRegistry';
 
 const UserContainer = styled.div``;
 
@@ -28,13 +23,6 @@ const UserPaginationContainer = styled.div`
 const DEFAULT_PAGE_SIZE = 25;
 
 export const UserList = () => {
-    const entityRegistry = useEntityRegistry();
-    const location = useLocation();
-    const params = QueryString.parse(location.search, { arrayFormat: 'comma' });
-    const paramsQuery = (params?.query as string) || undefined;
-    const [query, setQuery] = useState<undefined | string>(undefined);
-    useEffect(() => setQuery(paramsQuery), [paramsQuery]);
-
     const [page, setPage] = useState(1);
     const [removedUrns, setRemovedUrns] = useState<string[]>([]);
 
@@ -46,7 +34,6 @@ export const UserList = () => {
             input: {
                 start,
                 count: pageSize,
-                query,
             },
         },
         fetchPolicy: 'no-cache',
@@ -74,27 +61,6 @@ export const UserList = () => {
             {!data && loading && <Message type="loading" content="Loading users..." />}
             {error && message.error('Failed to load users :(')}
             <UserContainer>
-                <TabToolbar>
-                    <div>
-                        <></>
-                    </div>
-                    <SearchBar
-                        initialQuery={query || ''}
-                        placeholderText="Search users..."
-                        suggestions={[]}
-                        style={{
-                            maxWidth: 220,
-                            padding: 0,
-                        }}
-                        inputStyle={{
-                            height: 32,
-                            fontSize: 12,
-                        }}
-                        onSearch={() => null}
-                        onQueryChange={(q) => setQuery(q)}
-                        entityRegistry={entityRegistry}
-                    />
-                </TabToolbar>
                 <UserStyledList
                     bordered
                     locale={{

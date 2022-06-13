@@ -31,4 +31,3 @@ class BigQueryReport(SQLSourceReport):
     audit_start_time: Optional[str] = None
     audit_end_time: Optional[str] = None
     upstream_lineage: Dict = field(default_factory=dict)
-    partition_info: Dict[str, str] = field(default_factory=dict)

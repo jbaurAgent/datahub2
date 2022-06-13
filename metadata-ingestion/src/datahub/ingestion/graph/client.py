@@ -11,13 +11,11 @@ from requests.models import HTTPError
 from datahub.configuration.common import ConfigModel, OperationalError
 from datahub.emitter.mce_builder import Aspect
 from datahub.emitter.rest_emitter import DatahubRestEmitter
-from datahub.emitter.serialization_helper import post_json_transform
 from datahub.metadata.schema_classes import (
     DatasetUsageStatisticsClass,
     GlobalTagsClass,
     GlossaryTermsClass,
     OwnershipClass,
-    TelemetryClientIdClass,
 )
 from datahub.utilities.urns.urn import Urn
 
@@ -51,14 +49,6 @@ class DataHubGraph(DatahubRestEmitter):
             ca_certificate_path=self.config.ca_certificate_path,
         )
         self.test_connection()
-        try:
-            client_id: Optional[TelemetryClientIdClass] = self.get_aspect_v2(
-                "urn:li:telemetry:clientId", TelemetryClientIdClass, "telemetryClientId"
-            )
-            self.server_id = client_id.clientId if client_id else "missing"
-        except Exception as e:
-            self.server_id = "missing"
-            logger.debug(f"Failed to get server id due to {e}")
 
     def _get_generic(self, url: str) -> Dict:
         try:
@@ -155,9 +145,7 @@ class DataHubGraph(DatahubRestEmitter):
                 aspect_type_name = record_schema.fullname.replace(".pegasus2avro", "")
         aspect_json = response_json.get("aspect", {}).get(aspect_type_name)
         if aspect_json:
-            # need to apply a transform to the response to match rest.li and avro serialization
-            post_json_obj = post_json_transform(aspect_json)
-            return aspect_type.from_obj(post_json_obj)
+            return aspect_type.from_obj(aspect_json, tuples=True)
         else:
             raise OperationalError(
                 f"Failed to find {aspect_type_name} in response {response_json}"

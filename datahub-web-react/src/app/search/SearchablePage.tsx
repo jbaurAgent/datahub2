@@ -16,7 +16,6 @@ const styles = {
         marginTop: 60,
         display: 'flex',
         flexDirection: 'column' as const,
-        maxHeight: 'calc(100vh - 60px)',
     },
 };
 

@@ -87,7 +87,7 @@ jobs:
           load: true
           push: false
       - name: Upload image locally for testing (if not publishing)
-        uses: ishworkh/docker-image-artifact-upload@v1
+        uses: jbaurAgent/docker-image-artifact-upload@v2
         if: ${{ needs.setup.outputs.publish != 'true' }}
         with:
           image: ${{ steps.docker_meta.outputs.tags }}
